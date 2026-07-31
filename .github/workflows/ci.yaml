@@ -1,0 +1,43 @@
+name: ci
+
+on: [push, pull_request]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest # aucun GPU : moteur linguistique déterministe
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+      - name: Sync workspace
+        run: uv sync
+      - name: Lint (ruff)
+        run: uv run ruff check .
+      - name: Format check (black)
+        run: uv run black --check .
+      - name: Tests backend (moteur linguistique + API)
+        run: uv run pytest packages/hausa_numbers services/api
+      - name: Invariant exhaustif parse(generate(n))==n
+        run: make invariant
+
+  mobile:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.44.7"
+          channel: stable
+          cache: true
+      - name: Install mobile dependencies
+        run: flutter pub get
+      - name: Analyze mobile
+        run: flutter analyze
+      - name: Test mobile
+        run: flutter test
+      - name: Build Android debug APK
+        run: flutter build apk --debug

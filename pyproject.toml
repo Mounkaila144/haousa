@@ -1,0 +1,66 @@
+[project]
+name = "hausa-workspace"
+version = "0.1.0"
+description = "Monorepo Hausa — workspace Python (uv)."
+requires-python = ">=3.11"
+# Racine de workspace non-packageable : sert uniquement à coordonner les membres.
+dependencies = []
+
+[dependency-groups]
+# Outillage transverse + cœur linguistique installé en editable dans le workspace.
+dev = [
+    "ruff>=0.6",
+    "black>=24.0",
+    "pytest>=8.0",
+    "hypothesis>=6.0",
+    "hausa_numbers",
+    # Service API installé en editable dans le workspace (fournit fastapi, uvicorn…).
+    "hausa-api",
+    # Outillage de test du service API (client TestClient/httpx + support async).
+    "httpx>=0.27",
+    "pytest-asyncio>=0.23",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+# L'ASR garde un environnement séparé : torch/transformers sont optionnels et lourds.
+members = ["packages/hausa_numbers", "services/api"]
+
+[tool.uv.sources]
+hausa_numbers = { workspace = true }
+hausa-api = { workspace = true }
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["node_modules", ".venv", "*.ipynb"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+extend-exclude = "node_modules|\\.venv"
+
+[tool.pytest.ini_options]
+testpaths = [
+    "packages/hausa_numbers/tests",
+    "services/api/tests",
+    "scripts/bench/tests",
+    # Adaptateur NCAIR1/Hausa-ASR : prétraitement audio et chargement simulé,
+    # sans télécharger le modèle pendant les tests.
+    "services/asr/tests",
+    # Restitution vocale par concaténation (story 6.1) — logique pure, WAV
+    # synthétiques en tmp_path : ni audio réel, ni réseau.
+    "scripts/speech/tests",
+]
+pythonpath = [
+    "packages/hausa_numbers/src",
+    "services/api",
+    "scripts/bench",
+    "scripts/speech",
+]
+addopts = "-ra"

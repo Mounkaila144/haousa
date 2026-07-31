@@ -1,0 +1,45 @@
+name: hausa_mobile
+description: Application Android de reconnaissance des nombres en hausa.
+publish_to: none
+version: 1.1.0+2
+
+environment:
+  sdk: '>=3.12.0 <4.0.0'
+  flutter: '>=3.44.0'
+
+dependencies:
+  audioplayers: ^6.8.1
+  dio: 5.7.0
+  flutter:
+    sdk: flutter
+  flutter_riverpod: 2.5.1
+  path_provider: 2.1.5
+  permission_handler: 11.3.1
+  record: 5.2.1
+  sherpa_onnx: 1.13.4
+  unorm_dart: 0.3.2
+
+# record 5.2.1 allows newer platform packages whose interfaces are mutually
+# incompatibles. Ces versions restent figées jusqu'à la migration de `record`.
+dependency_overrides:
+  record_android: 1.4.0
+  record_linux: 1.2.1
+  record_platform_interface: 1.4.0
+  record_web: 1.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: 4.0.0
+  mocktail: ^1.0.4
+
+flutter:
+  uses-material-design: true
+
+  # Modèle Piper hausa et ressources Sherpa-ONNX. La synthèse est entièrement
+  # locale ; le dossier contient l'ONNX, son JSON, les tokens graphémiques et
+  # le manifeste d'intégrité. Aucun espeak-ng-data n'est requis par ce modèle.
+  assets:
+    - assets/models/hausa_tts/
+    - assets/brand/
+    - brand-source/logo.png

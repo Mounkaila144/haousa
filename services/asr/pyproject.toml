@@ -1,0 +1,21 @@
+[project]
+name = "hausa-asr"
+version = "0.1.0"
+description = "Service ASR Hausa NCAIR1/Hausa-ASR derrière /transcribe."
+readme = "README.md"
+requires-python = ">=3.10,<3.14"
+license = { text = "Proprietary" }
+# Dépendances lourdes, volontairement hors du workspace racine afin que l'API
+# et les tests déterministes restent installables sans torch/transformers.
+dependencies = [
+    "fastapi>=0.115",
+    "python-multipart>=0.0.20",
+    "pydantic-settings>=2.4",
+    "torch",
+    "numpy>=1.26",
+    "transformers>=4.45",
+    "uvicorn>=0.30",
+]
+
+# Ce paquet n'est pas membre du workspace racine : l'installer dans `asrenv`
+# comme décrit dans README.md et HAUSA_ASR_SETUP.md.

@@ -1,0 +1,44 @@
+version: "2.0.0-hausa"
+language: ha
+status: draft
+zero: {value: 0, canonical: sifili, variants: [sifili, sifiri], status: validé}
+units:
+  1: {isolated: ɗaya, combined: ɗaya, variants: [ɗaya, daya], status: validé}
+  2: {isolated: biyu, combined: biyu, variants: [biyu], status: validé}
+  3: {isolated: uku, combined: uku, variants: [uku], status: validé}
+  4: {isolated: huɗu, combined: huɗu, variants: [huɗu, hudu], status: validé}
+  5: {isolated: biyar, combined: biyar, variants: [biyar], status: validé}
+  6: {isolated: shida, combined: shida, variants: [shida], status: validé}
+  7: {isolated: bakwai, combined: bakwai, variants: [bakwai], status: validé}
+  8: {isolated: takwas, combined: takwas, variants: [takwas], status: validé}
+  9: {isolated: tara, combined: tara, variants: [tara], status: validé}
+tens:
+  10: {canonical: goma, variants: [goma], status: validé}
+  20: {canonical: ashirin, variants: [ashirin, ishirin], status: validé}
+  30: {canonical: talatin, variants: [talatin], status: validé}
+  40: {canonical: "arba'in", variants: ["arba'in"], status: validé}
+  50: {canonical: hamsin, variants: [hamsin], status: validé}
+  60: {canonical: sittin, variants: [sittin], status: validé}
+  70: {canonical: "saba'in", variants: ["saba'in"], status: validé}
+  80: {canonical: tamanin, variants: [tamanin], status: validé}
+  90: {canonical: "tasa'in", variants: ["tasa'in", tasain, "tisa'in", "casa'in"], status: validé}
+connectors:
+  tens_unit: {canonical: sha, variants: [sha], status: validé}
+  groups: {canonical: da, variants: [da], status: validé}
+  division_remainder: {canonical: saura, variants: [saura], status: validé}
+scales:
+  hundred: {value: 100, canonical: ɗari, variants: [ɗari, dari], status: validé}
+  thousand: {value: 1000, canonical: dubu, variants: [dubu], status: validé}
+  million: {value: 1000000, canonical: miliyan, variants: [miliyan, million, milliyan], status: validé}
+  billion: {value: 1000000000, canonical: biliyan, variants: [biliyan, billiyan], status: validé}
+  trillion: {value: 1000000000000, canonical: tiriliyan, variants: [tiriliyan, triliyan], status: validé}
+operators:
+  add: {symbol: "+", canonical: "a ƙara", variants: ["ƙara", "a kara", kara], status: validé}
+  subtract: {symbol: "-", canonical: "a hidda", variants: [hidda, debe, "a debe"], status: validé}
+  multiply: {symbol: "*", canonical: sau, variants: [sau], status: validé}
+  divide: {symbol: "/", canonical: "a raba chi sau", variants: ["raba chi sau", kashi], status: validé}
+asr_confusions:
+  daya: ɗaya
+  hudu: huɗu
+  dari: ɗari
+  tasain: "tasa'in"

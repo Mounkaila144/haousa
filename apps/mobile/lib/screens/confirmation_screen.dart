@@ -1,0 +1,619 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hausa_mobile/calculation/calculation_view.dart';
+import 'package:hausa_mobile/feedback/feedback_controller.dart';
+import 'package:hausa_mobile/feedback/feedback_models.dart';
+import 'package:hausa_mobile/models/recognition_result.dart';
+import 'package:hausa_mobile/navigation/app_routes.dart';
+import 'package:hausa_mobile/speech/voice_bank.dart';
+import 'package:hausa_mobile/speech/hausa_speaker.dart';
+import 'package:hausa_mobile/widgets/brand_app_bar.dart';
+import 'package:hausa_mobile/widgets/brand_footer.dart';
+
+const Duration confirmationRepeatDelay = Duration(seconds: 3);
+
+/// Écran d'ambiguïté. `confirm` présente les propositions du serveur et attend
+/// un choix explicite ; `repeat` (ou un `confirm` sans candidat exploitable)
+/// n'affiche aucun nombre et invite à réenregistrer. Le mobile ne recalcule ni
+/// confiance, ni ordre, ni forme hausa.
+class ConfirmationScreen extends ConsumerStatefulWidget {
+  const ConfirmationScreen({super.key, required this.result});
+
+  final RecognitionResult result;
+
+  @override
+  ConsumerState<ConfirmationScreen> createState() => _ConfirmationScreenState();
+}
+
+class _ConfirmationScreenState extends ConsumerState<ConfirmationScreen> {
+  Future<void> Function()? _lastAction;
+  bool _speechLoopStarted = false;
+  bool _speechLoopEnabled = true;
+  int _speechLoopVersion = 0;
+  Timer? _speechRepeatTimer;
+  Completer<void>? _speechDelayCompleter;
+  bool _repeatPromptSpoken = false;
+
+  /// Dit qu'aucun nombre n'a pu être identifié — l'écran seul ne le dirait
+  /// jamais à quelqu'un qui ne lit pas.
+  void _speakRepeatPrompt(HausaSpeaker speaker) {
+    _repeatPromptSpoken = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        unawaited(speaker.speak(repeatUtterance()));
+      }
+    });
+  }
+
+  /// Relit l'opération, attend trois secondes, puis recommence jusqu'à ce que
+  /// la personne confirme ou demande un nouvel enregistrement.
+  Future<void> _repeatExpression(
+    RecognizedExpression expression,
+    HausaSpeaker speaker,
+    int version,
+  ) async {
+    final List<VoiceSegment> utterance = confirmationUtterance(
+      speaker.preferred(expression.hausaText, expression.spokenText),
+    );
+    while (mounted && version == _speechLoopVersion) {
+      final SpeechOutcome outcome = await speaker.speak(utterance);
+      if (!mounted || version != _speechLoopVersion) {
+        return;
+      }
+      if (outcome != SpeechOutcome.spoken) {
+        return;
+      }
+      await _waitBeforeRepeating();
+    }
+  }
+
+  Future<void> _waitBeforeRepeating() {
+    final Completer<void> completer = Completer<void>();
+    _speechDelayCompleter = completer;
+    _speechRepeatTimer = Timer(confirmationRepeatDelay, () {
+      if (!completer.isCompleted) {
+        completer.complete();
+      }
+    });
+    return completer.future;
+  }
+
+  void _stopSpeechLoop() {
+    _speechLoopVersion++;
+    _speechLoopStarted = false;
+    _speechLoopEnabled = false;
+    _speechRepeatTimer?.cancel();
+    _speechRepeatTimer = null;
+    final Completer<void>? completer = _speechDelayCompleter;
+    _speechDelayCompleter = null;
+    if (completer != null && !completer.isCompleted) {
+      completer.complete();
+    }
+  }
+
+  /// Propositions sélectionnables : proposition principale puis alternatives
+  /// dans l'ordre serveur, dédupliquées par nombre, sans null ni forme vide.
+  /// Aucun tri côté client.
+  List<_Candidate> _candidates() {
+    final RecognitionResult result = widget.result;
+    final Set<int> seen = <int>{};
+    final List<_Candidate> list = <_Candidate>[];
+
+    final int? mainNumber = result.recognizedNumber;
+    if (mainNumber != null && result.hausaText.trim().isNotEmpty) {
+      seen.add(mainNumber);
+      list.add(_Candidate(number: mainNumber, hausaText: result.hausaText));
+    }
+    for (final RecognitionAlternative alternative in result.alternatives) {
+      final int? number = alternative.number;
+      if (number == null || alternative.hausaText.trim().isEmpty) {
+        continue;
+      }
+      if (!seen.add(number)) {
+        continue;
+      }
+      list.add(_Candidate(number: number, hausaText: alternative.hausaText));
+    }
+    return list;
+  }
+
+  Future<void> _confirm(_Candidate candidate) async {
+    _lastAction = () => _confirm(candidate);
+    final FeedbackResponse? response = await ref
+        .read(feedbackControllerProvider.notifier)
+        .submit(
+          recognition: widget.result,
+          feedbackType: FeedbackType.confirmed,
+          proposedNumber: candidate.number,
+        );
+    if (response == null || !mounted) {
+      return;
+    }
+    await Navigator.of(context).pushNamed(
+      AppRoutes.result,
+      arguments: ConfirmedResult(
+        recognition: widget.result,
+        number: candidate.number,
+        hausaText: candidate.hausaText,
+      ),
+    );
+    if (mounted) {
+      Navigator.of(context).popUntil(
+        (Route<dynamic> route) =>
+            route.settings.name == AppRoutes.recording || route.isFirst,
+      );
+    }
+  }
+
+  /// Confirmation d'une **opération** (story 6.1).
+  ///
+  /// Une seule proposition est présentée, volontairement : choisir entre
+  /// plusieurs opérations écrites suppose de savoir lire, ce que l'utilisateur
+  /// cible ne sait pas. La modalité utilisable est la relecture vocale de
+  /// l'opération entendue — accepter ou réenregistrer.
+  Future<void> _confirmExpression(RecognizedExpression expression) async {
+    _stopSpeechLoop();
+    _lastAction = () => _confirmExpression(expression);
+    final FeedbackResponse? response = await ref
+        .read(feedbackControllerProvider.notifier)
+        .submit(
+          recognition: widget.result,
+          feedbackType: FeedbackType.confirmed,
+          proposedNumber: expression.result,
+        );
+    if (response == null || !mounted) {
+      return;
+    }
+    await Navigator.of(
+      context,
+    ).pushNamed(AppRoutes.calculation, arguments: widget.result);
+    if (mounted) {
+      Navigator.of(context).popUntil(
+        (Route<dynamic> route) =>
+            route.settings.name == AppRoutes.recording || route.isFirst,
+      );
+    }
+  }
+
+  Future<void> _requestRepeat() async {
+    _stopSpeechLoop();
+    _lastAction = _requestRepeat;
+    final FeedbackResponse? response = await ref
+        .read(feedbackControllerProvider.notifier)
+        .submit(
+          recognition: widget.result,
+          feedbackType: FeedbackType.repeatRequested,
+          proposedNumber: widget.result.recognizedNumber,
+        );
+    if (response == null || !mounted) {
+      return;
+    }
+    // Retour à l'Enregistrement s'il est encore dans la pile, sinon l'Accueil ;
+    // jamais de repassage par Traitement/Confirmation.
+    Navigator.of(context).popUntil(
+      (Route<dynamic> route) =>
+          route.settings.name == AppRoutes.recording || route.isFirst,
+    );
+  }
+
+  void _openCorrection() {
+    // Aucun feedback au simple tap : le choix final n'existe qu'après la
+    // saisie/validation de la story 3.5.
+    Navigator.of(
+      context,
+    ).pushNamed(AppRoutes.correction, arguments: widget.result);
+  }
+
+  void _retry() {
+    _lastAction?.call();
+  }
+
+  @override
+  void dispose() {
+    _stopSpeechLoop();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final FeedbackState feedback = ref.watch(feedbackControllerProvider);
+    final bool busy = feedback.isBusy;
+    final RecognizedExpression? expression = widget.result.expression;
+    final List<_Candidate> candidates = _candidates();
+    final bool repeatOnly =
+        widget.result.decision == Decision.repeat ||
+        (expression == null && candidates.isEmpty);
+
+    if (!repeatOnly && expression != null) {
+      final HausaSpeaker? speaker = ref.watch(hausaSpeakerProvider);
+      if (_speechLoopEnabled &&
+          !_speechLoopStarted &&
+          speaker != null &&
+          !busy) {
+        _speechLoopStarted = true;
+        final int version = ++_speechLoopVersion;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && version == _speechLoopVersion) {
+            unawaited(_repeatExpression(expression, speaker, version));
+          }
+        });
+      }
+      return Scaffold(
+        key: const Key('confirmation-screen'),
+        appBar: const BrandAppBar(
+          title: 'Confirmation',
+          automaticallyImplyLeading: false,
+        ),
+        bottomNavigationBar: const BrandFooter(),
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: _ConfirmExpressionBody(
+              expression: expression,
+              busy: busy,
+              onConfirm: busy ? null : () => _confirmExpression(expression),
+              onRepeat: busy ? null : () => _requestRepeat(),
+              error: _errorSection(feedback, busy),
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (repeatOnly && !_repeatPromptSpoken) {
+      final HausaSpeaker? speaker = ref.watch(hausaSpeakerProvider);
+      if (speaker != null) {
+        _speakRepeatPrompt(speaker);
+      }
+    }
+
+    return Scaffold(
+      key: const Key('confirmation-screen'),
+      appBar: const BrandAppBar(title: 'Confirmation'),
+      bottomNavigationBar: const BrandFooter(),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: repeatOnly
+              ? _RepeatBody(
+                  busy: busy,
+                  onRecordAgain: busy ? null : () => _requestRepeat(),
+                  error: _errorSection(feedback, busy),
+                )
+              : _ConfirmBody(
+                  candidates: candidates,
+                  busy: busy,
+                  onSelect: busy ? null : (_Candidate c) => _confirm(c),
+                  onRepeat: busy ? null : () => _requestRepeat(),
+                  onCorrect: busy ? null : _openCorrection,
+                  error: _errorSection(feedback, busy),
+                ),
+        ),
+      ),
+    );
+  }
+
+  Widget _errorSection(FeedbackState feedback, bool busy) {
+    if (feedback.status != FeedbackStatus.error || feedback.failure == null) {
+      return const SizedBox.shrink();
+    }
+    final String message = feedback.failure!.message;
+    return Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Semantics(
+            liveRegion: true,
+            label: message,
+            child: Text(
+              message,
+              key: const Key('feedback-error-message'),
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+          ),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            key: const Key('feedback-retry-button'),
+            onPressed: busy ? null : _retry,
+            icon: const Icon(Icons.refresh),
+            label: const Text('Réessayer'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Candidate {
+  const _Candidate({required this.number, required this.hausaText});
+
+  final int number;
+  final String hausaText;
+}
+
+/// Confirmation d'une opération : une seule proposition, relue telle quelle.
+class _ConfirmExpressionBody extends StatelessWidget {
+  const _ConfirmExpressionBody({
+    required this.expression,
+    required this.busy,
+    required this.onConfirm,
+    required this.onRepeat,
+    required this.error,
+  });
+
+  final RecognizedExpression expression;
+  final bool busy;
+  final VoidCallback? onConfirm;
+  final VoidCallback? onRepeat;
+  final Widget error;
+
+  @override
+  Widget build(BuildContext context) {
+    final CalculationView view = CalculationView(expression);
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        Text(
+          'Avez-vous dit cette opération ?',
+          textAlign: TextAlign.center,
+          style: textTheme.titleLarge,
+        ),
+        if (busy) ...<Widget>[
+          const SizedBox(height: 16),
+          const LinearProgressIndicator(
+            key: Key('feedback-progress-indicator'),
+          ),
+        ],
+        Expanded(
+          child: Center(
+            child: Semantics(
+              liveRegion: true,
+              label: view.semanticsLabel,
+              child: ExcludeSemantics(
+                child: Text(
+                  view.operationLabel,
+                  key: const Key('confirm-expression-operation'),
+                  style: textTheme.displaySmall,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ),
+        ),
+        Semantics(
+          liveRegion: true,
+          label:
+              'L’opération est répétée automatiquement toutes les '
+              'trois secondes.',
+          child: const ExcludeSemantics(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Icon(Icons.volume_up),
+                SizedBox(width: 8),
+                Text('Répétition automatique'),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 72,
+          child: FilledButton.icon(
+            key: const Key('confirm-expression-button'),
+            onPressed: onConfirm,
+            icon: const Icon(Icons.check, size: 32),
+            label: const Text('Oui'),
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 72,
+          child: OutlinedButton.icon(
+            key: const Key('request-repeat-button'),
+            onPressed: onRepeat,
+            icon: const Icon(Icons.mic, size: 32),
+            label: const Text('Non'),
+          ),
+        ),
+        error,
+      ],
+    );
+  }
+}
+
+class _ConfirmBody extends StatelessWidget {
+  const _ConfirmBody({
+    required this.candidates,
+    required this.busy,
+    required this.onSelect,
+    required this.onRepeat,
+    required this.onCorrect,
+    required this.error,
+  });
+
+  final List<_Candidate> candidates;
+  final bool busy;
+  final void Function(_Candidate candidate)? onSelect;
+  final VoidCallback? onRepeat;
+  final VoidCallback? onCorrect;
+  final Widget error;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        Text(
+          'Quel nombre avez-vous dit ?',
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        const SizedBox(height: 4),
+        const Text(
+          'Choisissez une proposition ou réenregistrez.',
+          textAlign: TextAlign.center,
+        ),
+        if (busy) ...<Widget>[
+          const SizedBox(height: 16),
+          const LinearProgressIndicator(
+            key: Key('feedback-progress-indicator'),
+          ),
+        ],
+        const SizedBox(height: 16),
+        Expanded(
+          child: ListView.separated(
+            itemCount: candidates.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            itemBuilder: (BuildContext context, int index) {
+              final _Candidate candidate = candidates[index];
+              return _CandidateCard(
+                candidate: candidate,
+                primary: index == 0,
+                onTap: onSelect == null ? null : () => onSelect!(candidate),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 12),
+        OutlinedButton.icon(
+          key: const Key('request-repeat-button'),
+          onPressed: onRepeat,
+          icon: const Icon(Icons.mic),
+          label: const Text('Aucune : réenregistrer'),
+        ),
+        const SizedBox(height: 12),
+        TextButton.icon(
+          key: const Key('open-correction-button'),
+          onPressed: onCorrect,
+          icon: const Icon(Icons.edit_outlined),
+          label: const Text('Saisir moi-même'),
+        ),
+        error,
+      ],
+    );
+  }
+}
+
+class _CandidateCard extends StatelessWidget {
+  const _CandidateCard({
+    required this.candidate,
+    required this.primary,
+    required this.onTap,
+  });
+
+  final _Candidate candidate;
+  final bool primary;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final TextTheme textTheme = Theme.of(context).textTheme;
+    return Semantics(
+      button: true,
+      label:
+          'Choisir le nombre ${candidate.number}, '
+          'en hausa ${candidate.hausaText}.',
+      child: ExcludeSemantics(
+        child: Card(
+          margin: EdgeInsets.zero,
+          child: InkWell(
+            key: Key('candidate-option-${candidate.number}'),
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Text(
+                          candidate.number.toString(),
+                          style: primary
+                              ? textTheme.displaySmall
+                              : textTheme.headlineSmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.chevron_right),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RepeatBody extends StatelessWidget {
+  const _RepeatBody({
+    required this.busy,
+    required this.onRecordAgain,
+    required this.error,
+  });
+
+  final bool busy;
+  final VoidCallback? onRecordAgain;
+  final Widget error;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        Semantics(
+          liveRegion: true,
+          label:
+              'Aucun nombre n’a pu être identifié avec assez de certitude. '
+              'Réenregistrez en articulant un seul nombre.',
+          child: ExcludeSemantics(
+            child: Column(
+              children: <Widget>[
+                const Icon(Icons.hearing_disabled_outlined, size: 72),
+                const SizedBox(height: 16),
+                Text(
+                  'Nous n’avons pas pu identifier de nombre avec assez de '
+                  'certitude.',
+                  key: const Key('repeat-message'),
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Réenregistrez en articulant un seul nombre.',
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (busy) ...<Widget>[
+          const SizedBox(height: 24),
+          const LinearProgressIndicator(
+            key: Key('feedback-progress-indicator'),
+          ),
+        ],
+        const SizedBox(height: 32),
+        FilledButton.icon(
+          key: const Key('record-again-button'),
+          onPressed: onRecordAgain,
+          icon: const Icon(Icons.mic),
+          label: const Text('Réenregistrer'),
+        ),
+        error,
+      ],
+    );
+  }
+}

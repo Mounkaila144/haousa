@@ -1,0 +1,61 @@
+# --- Node / outillage BMAD ---
+node_modules/
+.ai/
+AGENTS.md.full.bak
+
+# --- Éditeurs ---
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+# Environnement ASR lourd et isolé (torch + omnilingual-asr), story 5.6.
+asrenv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+dist/
+build/
+
+# --- Flutter / Dart ---
+.dart_tool/
+apps/mobile/build/
+apps/mobile/.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+# Modèle TTS généré/téléchargé localement : trop volumineux pour Git classique.
+apps/mobile/assets/models/hausa_tts/model.onnx
+
+# --- Environnement / secrets ---
+.env
+*.env
+!.env.example
+
+# --- Base locale ---
+*.db
+zarma.db
+
+# --- Dataset audio (données consenties, hors Git) ---
+dataset/raw/
+# Audio du benchmark hors Git (consentement/FR20) ; seuls manifest + README versionnés.
+dataset/benchmark/*.wav
+dataset/benchmark/**/*.wav
+dataset/benchmark/*.jsonl
+# Dumps d'hypothèses ASR (données brutes, rejouables) — y compris sous-répertoires.
+dataset/benchmark/**/*.jsonl
+
+# --- Stockage runtime ---
+storage/
+
+# --- Outil de collecte de corpus (entrainement/) ---
+# L'APK est un artefact de compilation : 52 Mo qui alourdiraient le dépôt
+# définitivement, et que GitHub signale au-delà de 50 Mo. Il se reconstruit
+# avec `flutter build apk` et se distribue hors dépôt.
+entrainement/**/*.apk
+entrainement/*.apk

@@ -1,0 +1,34 @@
+# Makefile racine du monorepo Hausa.
+# Coordination polyglotte (pas de Nx/Turborepo) : cibles transverses via make + uv.
+
+.DEFAULT_GOAL := help
+.PHONY: help lint format test up migrate invariant
+
+help: ## Affiche cette aide
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
+		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
+
+lint: ## Lint + vérification de format (ruff + black)
+	uv run ruff check .
+	uv run black --check .
+
+format: ## Applique le formatage (black) et les autofix ruff
+	uv run ruff check --fix .
+	uv run black .
+
+test: ## Exécute les tests du paquet cœur hausa_numbers
+	uv run pytest packages/hausa_numbers
+
+demo: ## Lance le CLI interactif hausa <-> nombre
+	uv run python scripts/hausa.py
+
+# --- Cibles infrastructure ---
+
+up: ## [placeholder] Démarre la stack locale (docker compose) — Epic 2+
+	@echo "TODO(story ultérieure): docker compose up (services/api, db, etc.)"
+
+migrate: ## Applique les migrations Alembic de l'API
+	uv run alembic -c services/api/alembic.ini upgrade head
+
+invariant: ## Vérifie l'invariant exhaustif parse(generate(n))==n sur 0..1 000 000
+	uv run python -c "import sys; from hausa_numbers.validator import main; sys.exit(main())"
