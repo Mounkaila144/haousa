@@ -114,6 +114,10 @@ class Lexicon:
     #: Corrections d'erreurs acoustiques ASR (forme erronée -> forme correcte).
     #: STRUCTURE DISTINCTE des variantes linguistiques.
     asr_confusions: dict[str, str]
+    #: Formes de **prononciation** (forme écrite -> forme à lire par la synthèse
+    #: vocale). Troisième structure distincte : elle ne concerne que la sortie
+    #: parlée et n'entre jamais dans l'analyse d'une entrée.
+    spoken_forms: dict[str, str]
 
     def resolved_operators(self) -> dict[str, Operator]:
         """Opérateurs dont la forme hausa est résolue — les seuls exploitables."""
@@ -342,6 +346,16 @@ def _build_lexicon(data: dict) -> Lexicon:
         raise LexiconValidationError("'asr_confusions' doit être un mapping chaîne -> chaîne.")
     asr_confusions = dict(asr_raw)
 
+    # --- spoken_forms (structure DISTINCTE, optionnelle) ---
+    spoken_raw = data.get("spoken_forms", {})
+    if spoken_raw is None:
+        spoken_raw = {}
+    if not isinstance(spoken_raw, dict) or not all(
+        isinstance(k, str) and isinstance(v, str) for k, v in spoken_raw.items()
+    ):
+        raise LexiconValidationError("'spoken_forms' doit être un mapping chaîne -> chaîne.")
+    spoken_forms = dict(spoken_raw)
+
     return Lexicon(
         grammar_version=version,
         language=language,
@@ -353,6 +367,7 @@ def _build_lexicon(data: dict) -> Lexicon:
         scales=scales,
         operators=operators,
         asr_confusions=asr_confusions,
+        spoken_forms=spoken_forms,
     )
 
 

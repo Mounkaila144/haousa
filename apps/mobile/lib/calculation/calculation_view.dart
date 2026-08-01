@@ -66,8 +66,15 @@ class CalculationView {
         : '${expression.result}';
   }
 
-  /// Forme hausa du résultat — c'est **elle** qui sera prononcée.
+  /// Forme hausa du résultat — c'est **elle** qui est affichée.
   String get resultHausaText => expression.resultHausaText;
+
+  /// Forme du résultat réellement **prononcée**, vide si identique à l'écrite.
+  ///
+  /// `jikka` (1 000) s'écrit avec la gémination, mais la synthèse embarquée lit
+  /// des caractères et non des phonèmes : elle rend « jika ». Le serveur fournit
+  /// alors `jik'ka`, qui rétablit la coupe syllabique attendue.
+  String get resultSpokenText => expression.resultSpokenText;
 
   /// Message de refus, formulé sans jargon et sans jamais suggérer un nombre.
   String get refusalMessage {
@@ -96,7 +103,7 @@ class CalculationView {
     if (outcome == CalculationOutcome.refused) {
       return refusalUtterance();
     }
-    return utteranceFromHausa(resultHausaText);
+    return preferredUtterance(resultHausaText, resultSpokenText);
   }
 
   /// Énoncé destiné aux lecteurs d'écran (et modèle de la restitution vocale).

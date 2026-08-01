@@ -57,6 +57,7 @@ class RecognizedExpression {
     this.result,
     this.remainder = 0,
     this.resultHausaText = '',
+    this.resultSpokenText = '',
     this.refusalCode,
   });
 
@@ -69,6 +70,7 @@ class RecognizedExpression {
     final Object? result = json['result'];
     final Object? remainder = json['remainder'];
     final Object? resultHausaText = json['result_hausa_text'];
+    final Object? resultSpokenText = json['result_spoken_text'];
     final Object? refusalCode = json['refusal_code'];
 
     if (left is! num ||
@@ -80,6 +82,7 @@ class RecognizedExpression {
         (result != null && result is! num) ||
         (remainder != null && remainder is! num) ||
         (resultHausaText != null && resultHausaText is! String) ||
+        (resultSpokenText != null && resultSpokenText is! String) ||
         (refusalCode != null && refusalCode is! String)) {
       throw const RecognitionContractException();
     }
@@ -98,6 +101,7 @@ class RecognizedExpression {
       result: (result as num?)?.toInt(),
       remainder: (remainder as num?)?.toInt() ?? 0,
       resultHausaText: resultHausaText as String? ?? '',
+      resultSpokenText: resultSpokenText as String? ?? '',
       refusalCode: refusalCode as String?,
     );
   }
@@ -113,6 +117,7 @@ class RecognizedExpression {
       result: (json['result'] as num?)?.toInt(),
       remainder: (json['remainder'] as num?)?.toInt() ?? 0,
       resultHausaText: json['result_hausa_text'] as String? ?? '',
+      resultSpokenText: json['result_spoken_text'] as String? ?? '',
       refusalCode: json['refusal_code'] as String?,
     );
   }
@@ -131,6 +136,11 @@ class RecognizedExpression {
   final int? result;
   final int remainder;
   final String resultHausaText;
+
+  /// Forme du resultat a **prononcer**, vide si elle coincide avec
+  /// [resultHausaText]. `jikka` s'ecrit ainsi mais se lit `jik'ka` : la
+  /// synthese embarquee lit des caracteres, et perd la gemination.
+  final String resultSpokenText;
   final String? refusalCode;
 
   /// Le serveur a-t-il pu répondre ?

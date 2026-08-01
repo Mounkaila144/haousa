@@ -1,4 +1,4 @@
-version: "2.2.0-hausa"
+version: "2.3.0-hausa"
 language: ha
 status: draft
 zero: {value: 0, canonical: sifili, variants: [sifili, sifiri], status: validé}
@@ -46,3 +46,16 @@ asr_confusions:
   hudu: huɗu
   dari: ɗari
   tasain: "tasa'in"
+
+# Formes de PRONONCIATION : ce que la synthese vocale doit lire quand la forme
+# ecrite ne se prononce pas telle quelle. Structure DISTINCTE des variantes
+# linguistiques (entree) et des confusions ASR (correction) : celle-ci ne
+# concerne que la SORTIE parlee, et n'entre jamais dans l'analyse.
+#
+# Le modele Piper embarque est en `phoneme_type: text` — il lit les caracteres,
+# pas des phonemes espeak. Une gemination ecrite `kk` lui passe donc sous le
+# nez et `jikka` sort en « jika ». L'apostrophe, elle, fait partie de son
+# vocabulaire (token 5, c'est ce qui fait fonctionner `arba'in` ou `tasa'in`) :
+# elle sepàre nettement les deux syllabes, « jik » puis « ka ».
+spoken_forms:
+  jikka: "jik'ka"

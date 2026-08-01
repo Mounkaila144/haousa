@@ -56,6 +56,12 @@ class RecognitionOutcome:
     expression_result: hausa_numbers.ExpressionResult | None = None
     #: Forme hausa du resultat (avec ``saura`` pour une division a reste).
     result_hausa_text: str = ""
+    #: Forme **à prononcer** du résultat, quand elle diffère de l'écrite.
+    #:
+    #: C'est le résultat, et non l'opération relue, qui est prononcé après un
+    #: calcul : sans cette forme, la seule sortie qui atteigne un utilisateur
+    #: non lecteur resterait mal prononcée.
+    result_spoken_text: str = ""
     #: Code de refus arithmétique (``NEGATIVE_RESULT``…) — jamais un résultat approché.
     refusal_code: str | None = None
     #: Forme hausa **à prononcer**, quand elle diffère de ``hausa_text``.
@@ -128,6 +134,13 @@ def run_recognition_pipeline(asr_result: AsrResult, settings: Settings) -> Recog
     result_hausa_text = (
         hausa_numbers.render_result(expression_result) if expression_result is not None else ""
     )
+    # Un nombre seul est lui aussi prononcé : la forme parlée ne concerne donc
+    # pas que les opérations.
+    spoken_hausa = hausa_numbers.to_spoken(hausa_text)
+    if not spoken_text and spoken_hausa != hausa_text:
+        spoken_text = spoken_hausa
+    spoken_result = hausa_numbers.to_spoken(result_hausa_text)
+    result_spoken_text = spoken_result if spoken_result != result_hausa_text else ""
 
     return RecognitionOutcome(
         normalized_text=normalized_text,
@@ -139,6 +152,7 @@ def run_recognition_pipeline(asr_result: AsrResult, settings: Settings) -> Recog
         expression=expression,
         expression_result=expression_result,
         result_hausa_text=result_hausa_text,
+        result_spoken_text=result_spoken_text,
         refusal_code=refusal_code,
         spoken_text=spoken_text,
     )

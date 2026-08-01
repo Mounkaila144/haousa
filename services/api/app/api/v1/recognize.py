@@ -78,6 +78,9 @@ class RecognizedExpression(BaseModel):
     remainder: int = 0
     #: Forme hausa du résultat (``« ashirin saura uku »`` = « 20 reste 3 »).
     result_hausa_text: str = ""
+    #: Forme **à prononcer** du résultat, quand elle diffère de l'écrite
+    #: (``jikka`` s'écrit ainsi mais se lit ``jik'ka``). Vide si identique.
+    result_spoken_text: str = ""
     refusal_code: str | None = None
 
 
@@ -155,6 +158,7 @@ async def _run_pipeline(
             result=result.value if result is not None else None,
             remainder=result.remainder if result is not None else 0,
             result_hausa_text=outcome.result_hausa_text,
+            result_spoken_text=outcome.result_spoken_text,
             refusal_code=outcome.refusal_code,
         )
 

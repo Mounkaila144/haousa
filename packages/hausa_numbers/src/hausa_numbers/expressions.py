@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 from .exceptions import DomainError, ExpressionParseError, ParseError
 from .generator import MAX_VALUE, generate
+from .loader import load_lexicon
 from .normalizer import normalize_hausa_text
 from .parser import hausa_words_to_number
 
@@ -157,7 +158,30 @@ def render_expression(expression: Expression) -> str:
     return f"{left} {_CANONICAL[expression.symbol]} {right}"
 
 
-render_spoken = render_expression
+def to_spoken(text: str) -> str:
+    """Réécrit un texte canonique en sa forme **à prononcer**.
+
+    Certaines formes écrites ne se lisent pas telles quelles par la synthèse
+    vocale embarquée : `jikka` (1 000) sort en « jika », la gémination étant
+    perdue. Le lexique porte alors une forme parlée (`jik'ka`) qui rétablit la
+    coupe syllabique attendue.
+
+    C'est une transformation de **sortie** uniquement : elle n'est jamais
+    appliquée avant une analyse, sans quoi la forme parlée deviendrait une
+    entrée acceptée et le lexique aurait deux formes canoniques concurrentes.
+    Substitution sur frontières de mots, jamais de rapprochement flou.
+    """
+    if not isinstance(text, str) or not text.strip():
+        return text
+    forms = load_lexicon().spoken_forms
+    if not forms:
+        return text
+    return " ".join(forms.get(word, word) for word in text.split())
+
+
+def render_spoken(expression: Expression) -> str:
+    """Forme **prononçable** de l'opération (cf. ``to_spoken``)."""
+    return to_spoken(render_expression(expression))
 
 
 def render_result(result: ExpressionResult) -> str:
@@ -185,4 +209,5 @@ __all__ = [
     "render_result",
     "render_spoken",
     "supported_operators",
+    "to_spoken",
 ]

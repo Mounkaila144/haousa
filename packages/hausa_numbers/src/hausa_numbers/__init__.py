@@ -33,6 +33,7 @@ from .expressions import (
     render_result,
     render_spoken,
     supported_operators,
+    to_spoken,
 )
 from .generator import MAX_VALUE, MIN_VALUE, generate, generate_combined, number_to_hausa
 from .grammar import (
@@ -98,6 +99,7 @@ __all__ = [
     "evaluate_text",
     "render_expression",
     "render_spoken",
+    "to_spoken",
     "render_result",
     "supported_operators",
     "LexiconError",
