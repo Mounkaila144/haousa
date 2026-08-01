@@ -192,8 +192,8 @@ def test_valid_expression_is_decoded_verbatim(constraint, tokenizer, grammar, sp
         ("jika uku da biyar", 3005),
     ],
 )
-def test_thousand_is_jika_not_dubu(constraint, tokenizer, spoken, expected):
-    """1 000 se dit ``jika``. Les 5 énoncés que la grammaire refusait auparavant.
+def test_thousand_is_jikka(constraint, tokenizer, spoken, expected):
+    """1 000 se dit ``jikka``. Les 5 énoncés que la grammaire refusait auparavant.
 
     Tant que le lexique disait ``dubu``, ces opérations n'avaient aucun chemin
     dans l'automate : le décodeur s'abstenait, et l'utilisateur voyait
@@ -225,7 +225,7 @@ def test_legacy_dubu_is_accepted_but_never_emitted(constraint, tokenizer, gramma
     result = run(constraint, tokenizer, "dubu biyar a hidda goma", grammar=grammar)
     assert result.best is not None
     assert "dubu" not in result.best.text.split()
-    assert "jika" in result.best.text.split()
+    assert "jikka" in result.best.text.split()
 
 
 def test_every_hypothesis_is_accepted_by_the_grammar(constraint, tokenizer, grammar):

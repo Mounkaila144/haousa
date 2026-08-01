@@ -21,10 +21,12 @@ HAUSA_NORMALIZATION_ALIASES = {
     "tasain": "tasa'in",
     "tisa'in": "tasa'in",
     "casa'in": "tasa'in",
-    # 1 000 : forme canonique `jika` (hausa du Niger). `dubu`, standard au
-    # Nigeria, reste accepte en entree et converge vers la forme canonique — les
-    # transcriptions et corpus deja enregistres restent donc analysables.
-    "dubu": "jika",
+    # 1 000 : forme canonique `jikka` (k gemine, hausa du Niger). `jika` et
+    # `dubu` (standard du Nigeria) restent acceptes en entree et convergent vers
+    # la forme canonique — les transcriptions et corpus deja enregistres, ainsi
+    # que ce que le modele acoustique ecrit spontanement, restent analysables.
+    "dubu": "jikka",
+    "jika": "jikka",
     "million": "miliyan",
     "milliyan": "miliyan",
     "billiyan": "biliyan",
