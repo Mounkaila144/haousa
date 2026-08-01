@@ -7,12 +7,12 @@ from io import BytesIO
 from time import sleep
 from uuid import UUID
 
-import app.api.v1.recognize as recognize_module
 import hausa_numbers
 import pytest
 from app.asr.base import AsrResult, AudioInput, Candidate, SpeechRecognizer
 from app.asr.factory import get_recognizer
 from app.asr.mock import MockRecognizer
+from app.config import get_settings
 from app.main import app
 from app.pipeline.audio import MAX_AUDIO_SIZE
 from fastapi.testclient import TestClient
@@ -245,7 +245,7 @@ class TestErrorHandling:
         recognizer = SlowRecognizer()
         recognizer.set_text(hausa_numbers.generate(1))
         app.dependency_overrides[get_recognizer] = lambda: recognizer
-        monkeypatch.setattr(recognize_module, "TIMEOUT_SECONDS", 0.001)
+        monkeypatch.setattr(get_settings(), "ASR_TIMEOUT_SECONDS", 0.001)
         try:
             response = post_audio()
         finally:

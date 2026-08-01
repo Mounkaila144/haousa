@@ -15,7 +15,15 @@ dependencies = [
     "numpy>=1.26",
     "transformers>=4.45",
     "uvicorn>=0.30",
+    # Le décodage est contraint à l'automate de la grammaire : le service ASR a
+    # donc besoin du lexique, et c'est lui qui fournit la version de grammaire
+    # annoncée par /health — plus aucune constante recopiée dans le service.
+    #   uv pip install --python asrenv/bin/python -e packages/hausa_numbers
+    "hausa-numbers",
 ]
+
+[tool.uv.sources]
+hausa-numbers = { path = "../../packages/hausa_numbers", editable = true }
 
 # Ce paquet n'est pas membre du workspace racine : l'installer dans `asrenv`
 # comme décrit dans README.md et HAUSA_ASR_SETUP.md.

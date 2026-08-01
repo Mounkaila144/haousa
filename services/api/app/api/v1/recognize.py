@@ -37,8 +37,6 @@ from app.storage.audio_store import AudioStorageError, AudioStore, get_audio_sto
 
 router = APIRouter(tags=["recognize"])
 
-TIMEOUT_SECONDS = 30.0
-
 
 class RecognizeRequest(BaseModel):
     """Champs de formulaire validés pour une requête de reconnaissance."""
@@ -234,7 +232,10 @@ async def recognize(
 
     audio_ref: str | None = None
     try:
-        async with asyncio.timeout(TIMEOUT_SECONDS):
+        # Le délai de la route vient de la configuration, pas d'une constante :
+        # deux valeurs indépendantes finissaient par diverger, et c'est celle du
+        # client HTTP vers l'ASR qui gouverne réellement l'abandon.
+        async with asyncio.timeout(settings.ASR_TIMEOUT_SECONDS):
             if settings.REQUIRE_TRAINING_CONSENT:
                 if consent_id is None:
                     raise InvalidConsentError

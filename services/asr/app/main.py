@@ -44,7 +44,7 @@ def health(_authorized: Annotated[None, Depends(authorize)]) -> dict[str, object
         "model": service.model_source,
         "model_loaded": service._pipeline is not None,
         "load_error": service.load_error,
-        "grammar_version": "2.0.0-hausa",
+        "grammar_version": service.grammar_version,
     }
 
 
@@ -65,11 +65,11 @@ async def transcribe(
             "success": True,
             "language": "hausa",
             "text": result.text,
-            "acoustic_score": 1.0,
-            "candidates": [],
+            "acoustic_score": result.acoustic_score,
+            "candidates": [{"text": text, "score": score} for text, score in result.candidates],
             "latency_ms": result.latency_ms,
             "model_version": result.model_version,
-            "grammar_version": "2.0.0-hausa",
+            "grammar_version": result.grammar_version,
         }
     )
 
