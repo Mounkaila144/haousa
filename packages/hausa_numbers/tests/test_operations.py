@@ -17,7 +17,7 @@ from hausa_numbers import (
         ("goma sau biyar", 10, "*", 5, 50),
         ("ɗari ɗaya a raba chi sau biyu", 100, "/", 2, 50),
         ("tasa'in da tara a kara daya", 99, "+", 1, 100),
-        ("dubu biyu a hidda ɗari biyar", 2000, "-", 500, 1500),
+        ("jika biyu a hidda ɗari biyar", 2000, "-", 500, 1500),
     ],
 )
 def test_operations(text, left, symbol, right, result):

@@ -21,6 +21,10 @@ HAUSA_NORMALIZATION_ALIASES = {
     "tasain": "tasa'in",
     "tisa'in": "tasa'in",
     "casa'in": "tasa'in",
+    # 1 000 : forme canonique `jika` (hausa du Niger). `dubu`, standard au
+    # Nigeria, reste accepte en entree et converge vers la forme canonique — les
+    # transcriptions et corpus deja enregistres restent donc analysables.
+    "dubu": "jika",
     "million": "miliyan",
     "milliyan": "miliyan",
     "billiyan": "biliyan",

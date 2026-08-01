@@ -9,7 +9,9 @@
   `tamanin`, `tasa'in` ;
 - 21--99 : `<dizaine> da <unite>` ;
 - centaines : `ɗari [multiplicateur] [da reste]` ;
-- milliers : `dubu [multiplicateur] [da reste]` ;
+- milliers : `jika [multiplicateur] [da reste]` ;
+  `jika` est la forme retenue pour 1 000 (hausa du Niger). `dubu`, standard
+  au Nigeria, reste accepte **en entree** mais n'est jamais produit ;
 - grandes echelles : `miliyan`, `biliyan`, `tiriliyan`, suivies du
   multiplicateur et eventuellement de `da` puis du reste.
 
@@ -20,7 +22,7 @@
 
 Les apostrophes deviennent `'`, la casse et les espaces sont normalises, et les
 alias complets tels que `daya` -> `ɗaya`, `hudu` -> `huɗu`, `dari` ->
-`ɗari`, `sifiri` -> `sifili` sont appliques sur des frontieres de mots. Un
+`ɗari`, `sifiri` -> `sifili`, `dubu` -> `jika` sont appliques sur des frontieres de mots. Un
 mot inconnu n'est jamais modifie par rapprochement flou.
 
 ## `sha` et `da`
@@ -35,7 +37,7 @@ Exemples :
 ```text
 23    ashirin da uku
 250   ɗari biyu da hamsin
-2523  dubu biyu da ɗari biyar da ashirin da uku
+2523  jika biyu da ɗari biyar da ashirin da uku
 90    tasa'in
 99    tasa'in da tara
 ```

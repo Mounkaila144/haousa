@@ -8,7 +8,7 @@ from functools import lru_cache
 from types import MappingProxyType
 
 from .expressions import HAUSA_OPERATORS, parse_expression, render_expression
-from .generator import generate
+from .generator import SCALES, generate
 from .loader import Lexicon, load_lexicon
 from .normalizer import normalize_hausa_text
 from .parser import parse
@@ -53,7 +53,11 @@ def _below_thousand(nfa: _Nfa) -> tuple[int, set[int]]:
 def _number_language(nfa: _Nfa) -> tuple[int, set[int]]:
     lower_root, lower_terminals = _below_thousand(nfa)
     current_root, current_terminals = lower_root, set(lower_terminals)
-    for scale in ("dubu", "miliyan", "biliyan", "tiriliyan"):
+    # Échelles lues du lexique, de la plus petite à la plus grande. Les écrire
+    # ici en dur ferait de ce module une source de vérité concurrente : c'est
+    # ainsi que 1 000 a pu rester « dubu » dans la grammaire alors que le
+    # lexique disait autre chose.
+    for scale_value, scale in sorted((value, word) for value, word in SCALES):
         root = nfa.state()
         nfa.eps(root, current_root)
         after_scale = nfa.state()
@@ -61,8 +65,8 @@ def _number_language(nfa: _Nfa) -> tuple[int, set[int]]:
 
         multiplier_root, multiplier_terminals = _below_thousand(nfa)
         terminals = set(current_terminals)
-        if scale == "dubu":
-            # 1 000 a pour forme canonique courte "dubu".
+        if scale_value == 1_000:
+            # 1 000 a une forme canonique courte, sans multiplicateur.
             terminals.add(after_scale)
         nfa.eps(after_scale, multiplier_root)
         terminals.update(multiplier_terminals)
@@ -201,7 +205,11 @@ def _pronunciations(lexicon: Lexicon) -> dict[str, tuple[str, ...]]:
     for surface, canonical in lexicon.linguistic_variant_map().items():
         if " " not in surface and " " not in canonical:
             result.setdefault(canonical, {canonical}).add(surface)
-    for token in ("sha", "da", "dubu", "miliyan", "biliyan", "tiriliyan", "a", "chi", "sau"):
+    # Mots d'échelle du lexique + connecteurs et particules d'opérateur, qui
+    # n'ont pas de variante propre mais doivent exister comme tokens.
+    for _value, scale_word in SCALES:
+        result.setdefault(scale_word, {scale_word})
+    for token in ("sha", "da", "a", "chi", "sau"):
         result.setdefault(token, {token})
     return {key: tuple(sorted(values)) for key, values in result.items()}
 

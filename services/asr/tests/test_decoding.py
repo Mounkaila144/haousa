@@ -125,18 +125,26 @@ def constraint(grammar, tokenizer) -> GrammarConstraint:
     return GrammarConstraint(grammar, tokenizer.encode, eot_id=EOT)
 
 
-def decode_text(tokenizer: FakeTokenizer):
-    reverse = {}
+def decode_text(tokenizer: FakeTokenizer, grammar=None):
+    """Rend le texte **canonique**, comme le service : le décodeur accepte
+    toutes les orthographes, mais ce qui sort doit être stable."""
+    reverse: dict[int, str] = {}
 
     def render(ids) -> str:
         if not reverse:
             reverse.update({v: k for k, v in tokenizer._ids.items()})
-        return "".join(reverse.get(int(i), "") for i in ids).strip()
+        text = "".join(reverse.get(int(i), "") for i in ids).strip()
+        if grammar is None:
+            return text
+        state, canonical = grammar.walk(text.split())
+        return " ".join(canonical) if state is not None else text
 
     return render
 
 
-def run(constraint, tokenizer, text: str, *, threshold: float = 0.0, free_nll: float = 1.0):
+def run(
+    constraint, tokenizer, text: str, *, threshold: float = 0.0, free_nll: float = 1.0, grammar=None
+):
     """Décode en privilégiant l'encodage de ``text``."""
     ids: list[int] = []
     for position, word in enumerate(text.split()):
@@ -147,7 +155,7 @@ def run(constraint, tokenizer, text: str, *, threshold: float = 0.0, free_nll: f
     )
     return decoder.decode(
         source,
-        decode_text(tokenizer),
+        decode_text(tokenizer, grammar),
         free_neg_log_likelihood=free_nll,
         free_token_count=max(1, len(ids)),
     )
@@ -174,6 +182,52 @@ def test_valid_expression_is_decoded_verbatim(constraint, tokenizer, grammar, sp
     assert grammar.accepts(result.best.text)
 
 
+@pytest.mark.parametrize(
+    ("spoken", "expected"),
+    [
+        ("jika biyar a hidda goma", 4990),
+        ("jika huɗu a ƙara ɗari", 4100),
+        ("jika goma a ƙara ɗari", 10100),
+        ("jika goma sha ɗaya a hidda goma", 10990),
+        ("jika uku da biyar", 3005),
+    ],
+)
+def test_thousand_is_jika_not_dubu(constraint, tokenizer, spoken, expected):
+    """1 000 se dit ``jika``. Les 5 énoncés que la grammaire refusait auparavant.
+
+    Tant que le lexique disait ``dubu``, ces opérations n'avaient aucun chemin
+    dans l'automate : le décodeur s'abstenait, et l'utilisateur voyait
+    « répétez » sur des phrases parfaitement correctes.
+    """
+    import hausa_numbers
+
+    result = run(constraint, tokenizer, spoken)
+    assert result.best is not None
+    normalized = hausa_numbers.normalize(result.best.text)
+    expression = hausa_numbers.parse_expression(normalized)
+    value = (
+        hausa_numbers.evaluate(expression).value
+        if expression is not None
+        else hausa_numbers.parse(normalized)
+    )
+    assert value == expected
+
+
+def test_legacy_dubu_is_accepted_but_never_emitted(constraint, tokenizer, grammar):
+    """``dubu`` (hausa du Nigeria) reste **entendu** ; la sortie reste canonique.
+
+    Le décodeur doit pouvoir coller à ce que le locuteur a dit, sans que la
+    valeur retournée dépende de l'orthographe que l'acoustique a préférée.
+    """
+    import hausa_numbers
+
+    assert hausa_numbers.parse("dubu biyar") == 5000
+    result = run(constraint, tokenizer, "dubu biyar a hidda goma", grammar=grammar)
+    assert result.best is not None
+    assert "dubu" not in result.best.text.split()
+    assert "jika" in result.best.text.split()
+
+
 def test_every_hypothesis_is_accepted_by_the_grammar(constraint, tokenizer, grammar):
     result = run(constraint, tokenizer, "ɗari uku da hamsin sau biyu")
     assert result.hypotheses
@@ -191,8 +245,8 @@ def test_every_hypothesis_is_accepted_by_the_grammar(constraint, tokenizer, gram
     [
         ("so", "le modele ecrit 'so' pour 'sau' (multiplication)"),
         ("ƙaƙƙashi", "le modele ecrit 'ƙaƙƙashi' pour 'kashi' (division)"),
-        ("jika", "mot hors grammaire, jamais un nombre"),
-        ("shiga", "mot hors grammaire, jamais un nombre"),
+        ("shiga", "rendu ASR de 'jika', mais pas une forme du lexique"),
+        ("kwabo", "mot hausa courant, absent de la grammaire des nombres"),
     ],
 )
 def test_out_of_grammar_word_can_never_be_emitted(constraint, tokenizer, intruder, reason):
@@ -248,7 +302,7 @@ def test_degenerate_inputs_give_zero_confidence():
 
 def test_decoder_abstains_below_threshold(constraint, tokenizer):
     """Un chemin acoustiquement coûteux est refusé plutôt que retourné."""
-    result = run(constraint, tokenizer, "jika biyar debe goma", threshold=0.9, free_nll=0.0)
+    result = run(constraint, tokenizer, "kwabo shiga wata", threshold=0.9, free_nll=0.0)
     assert result.rejected
 
 

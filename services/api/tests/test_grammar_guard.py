@@ -36,7 +36,7 @@ def settings() -> Settings:
 
 def _transcribe_transport(grammar_version: str | None) -> httpx.MockTransport:
     payload = {
-        "text": "dubu ɗaya sau uku",
+        "text": "jika ɗaya sau uku",
         "acoustic_score": 0.9,
         "candidates": [],
         "latency_ms": 12,
@@ -87,7 +87,7 @@ def test_la_derive_ne_casse_jamais_la_transcription(settings: Settings) -> None:
 
     result = recognizer.transcribe(AudioInput(data=b"\x00\x00", format="pcm_s16le"))
 
-    assert result.text == "dubu ɗaya sau uku"
+    assert result.text == "jika ɗaya sau uku"
     assert result.acoustic_score == pytest.approx(0.9)
 
 

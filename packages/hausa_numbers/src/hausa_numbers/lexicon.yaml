@@ -1,4 +1,4 @@
-version: "2.0.0-hausa"
+version: "2.1.0-hausa"
 language: ha
 status: draft
 zero: {value: 0, canonical: sifili, variants: [sifili, sifiri], status: validé}
@@ -28,7 +28,10 @@ connectors:
   division_remainder: {canonical: saura, variants: [saura], status: validé}
 scales:
   hundred: {value: 100, canonical: ɗari, variants: [ɗari, dari], status: validé}
-  thousand: {value: 1000, canonical: dubu, variants: [dubu], status: validé}
+  # 1 000 se dit `jika` chez les locuteurs vises (Niger). `dubu` reste accepte
+  # EN ENTREE (hausa standard du Nigeria) mais n'est plus jamais produit :
+  # le decodeur contraint et le generateur emettent la forme canonique.
+  thousand: {value: 1000, canonical: jika, variants: [jika, dubu], status: validé}
   million: {value: 1000000, canonical: miliyan, variants: [miliyan, million, milliyan], status: validé}
   billion: {value: 1000000000, canonical: biliyan, variants: [biliyan, billiyan], status: validé}
   trillion: {value: 1000000000000, canonical: tiriliyan, variants: [tiriliyan, triliyan], status: validé}

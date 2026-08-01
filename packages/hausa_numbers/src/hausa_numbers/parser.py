@@ -5,18 +5,15 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from .exceptions import ParseError
-from .generator import MAX_VALUE, TENS, UNITS
+from .generator import HUNDRED, MAX_VALUE, SCALES, TENS, UNITS
 from .normalizer import normalize_hausa_text
 
 _UNIT_VALUES = {word: value for value, word in UNITS.items()}
 _TENS_VALUES = {word: value for value, word in TENS.items()}
-_SCALES = (
-    ("tiriliyan", 1_000_000_000_000),
-    ("biliyan", 1_000_000_000),
-    ("miliyan", 1_000_000),
-    ("dubu", 1_000),
-    ("ɗari", 100),
-)
+#: Échelles du lexique, de la plus grande à la plus petite, centaine comprise.
+#: Dérivé du générateur — donc du lexique — pour que le parseur ne puisse pas
+#: connaître un mot d'échelle que le décodeur ignore, ou l'inverse.
+_SCALES = tuple((word, value) for value, word in SCALES) + ((HUNDRED, 100),)
 
 
 @dataclass(frozen=True)

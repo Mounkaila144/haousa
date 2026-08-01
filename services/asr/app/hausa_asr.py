@@ -229,6 +229,7 @@ class HausaAsrService:
         self._model: Any | None = None
         self._processor: Any | None = None
         self._decoder: ConstrainedDecoder | None = None
+        self._grammar: Any | None = None
         self._prefix_ids: list[int] = []
         self._eot_id: int = 0
         self.grammar_version: str = ""
@@ -281,6 +282,7 @@ class HausaAsrService:
                 lambda text: tokenizer.encode(text, add_special_tokens=False),
                 eot_id=self._eot_id,
             )
+            self._grammar = grammar
             self._decoder = ConstrainedDecoder(
                 constraint,
                 DecoderConfig(
@@ -349,6 +351,22 @@ class HausaAsrService:
             kept_seconds=kept_seconds,
         )
 
+    def _canonical_text(self, token_ids) -> str:
+        """Texte **canonique** de l'hypothèse, et non l'orthographe décodée.
+
+        Le décodeur accepte toutes les orthographes connues d'un mot (``dubu``
+        pour ``jika``, ``dari`` pour ``ɗari``) : c'est ce qui lui permet de
+        coller à ce que le modèle a réellement entendu. Mais ce qui sort doit
+        être stable, sinon la valeur retournée dépendrait de l'orthographe que
+        l'acoustique a préférée. ``walk`` rejoue le chemin dans l'automate et
+        rend les mots canoniques correspondants.
+        """
+        text = self._processor.tokenizer.decode(list(token_ids), skip_special_tokens=True).strip()
+        if self._grammar is None:
+            return text
+        state, canonical = self._grammar.walk(text.split())
+        return " ".join(canonical) if state is not None else text
+
     def _run_inference(self, samples: np.ndarray) -> Transcription:
         """Encodeur, chemin libre, puis décodage contraint. Sans I/O audio."""
         started = perf_counter()
@@ -363,9 +381,7 @@ class HausaAsrService:
             free_text, free_nll, free_count = self._free_greedy(encoder_outputs)
             result = self._decoder.decode(
                 _WhisperLogprobSource(self._model, encoder_outputs, self._prefix_ids),
-                lambda ids: self._processor.tokenizer.decode(
-                    list(ids), skip_special_tokens=True
-                ).strip(),
+                self._canonical_text,
                 free_neg_log_likelihood=free_nll,
                 free_token_count=free_count,
                 free_text=free_text,

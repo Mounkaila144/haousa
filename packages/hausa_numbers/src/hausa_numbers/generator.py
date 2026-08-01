@@ -3,38 +3,42 @@
 from __future__ import annotations
 
 from .exceptions import OutOfRangeError
+from .loader import load_lexicon
 
 MIN_VALUE = 0
 MAX_VALUE = 999_999_999_999_999
 
-UNITS = {
-    1: "ɗaya",
-    2: "biyu",
-    3: "uku",
-    4: "huɗu",
-    5: "biyar",
-    6: "shida",
-    7: "bakwai",
-    8: "takwas",
-    9: "tara",
-}
-TENS = {
-    10: "goma",
-    20: "ashirin",
-    30: "talatin",
-    40: "arba'in",
-    50: "hamsin",
-    60: "sittin",
-    70: "saba'in",
-    80: "tamanin",
-    90: "tasa'in",
-}
-SCALES = (
-    (1_000_000_000_000, "tiriliyan"),
-    (1_000_000_000, "biliyan"),
-    (1_000_000, "miliyan"),
-    (1_000, "dubu"),
-)
+
+def _from_lexicon() -> tuple[dict[int, str], dict[int, str], tuple[tuple[int, str], ...], str]:
+    """Formes canoniques lues du **lexique**, jamais recopiées ici.
+
+    `dubu` était écrit en dur dans ce module, dans le parseur et dans la
+    grammaire, en plus du lexique : quatre sources de vérité pour un même mot.
+    Corriger 1 000 (`dubu` → `jika`) demandait donc quatre modifications
+    cohérentes, et une seule oubliée suffisait à faire diverger le décodeur du
+    parseur — tout serait devenu `repeat` sans la moindre erreur visible.
+    """
+    lexicon = load_lexicon()
+    units = {unit.value: unit.isolated for unit in lexicon.units.values()}
+    tens = {value: term.canonical for value, term in lexicon.tens.items() if term.canonical}
+    scales = tuple(
+        sorted(
+            (
+                (scale.value, scale.canonical)
+                for scale in lexicon.scales.values()
+                if scale.canonical and scale.value >= 1_000
+            ),
+            reverse=True,
+        )
+    )
+    hundred = lexicon.scales["hundred"].canonical or "ɗari"
+    return units, tens, scales, hundred
+
+
+UNITS, TENS, SCALES, HUNDRED = _from_lexicon()
+
+#: Échelle de 1 000, seule à avoir une forme courte sans multiplicateur.
+THOUSAND_WORD = next((word for value, word in SCALES if value == 1_000), "")
 
 
 def _below_hundred(value: int) -> str:
@@ -52,7 +56,7 @@ def _below_thousand(value: int) -> str:
     if value < 100:
         return _below_hundred(value)
     hundreds, remainder = divmod(value, 100)
-    head = "ɗari" if hundreds == 1 else f"ɗari {UNITS[hundreds]}"
+    head = HUNDRED if hundreds == 1 else f"{HUNDRED} {UNITS[hundreds]}"
     return head if remainder == 0 else f"{head} da {_below_hundred(remainder)}"
 
 
@@ -62,8 +66,8 @@ def _positive(value: int) -> str:
     for scale_value, scale_word in SCALES:
         if value >= scale_value:
             multiplier, remainder = divmod(value, scale_value)
-            if scale_word == "dubu" and multiplier == 1 and remainder == 0:
-                head = "dubu"
+            if scale_word == THOUSAND_WORD and multiplier == 1 and remainder == 0:
+                head = THOUSAND_WORD
             else:
                 head = f"{scale_word} {_positive(multiplier)}"
             return head if remainder == 0 else f"{head} da {_positive(remainder)}"
@@ -87,10 +91,12 @@ def generate_combined(value: int) -> str:
 number_to_hausa = generate
 
 __all__ = [
+    "HUNDRED",
     "MAX_VALUE",
     "MIN_VALUE",
     "SCALES",
     "TENS",
+    "THOUSAND_WORD",
     "UNITS",
     "generate",
     "generate_combined",
