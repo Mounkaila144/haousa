@@ -15,6 +15,7 @@ __pycache__/
 *.egg-info/
 .venv/
 venv/
+.cache/
 # Environnement ASR lourd et isolé (torch + omnilingual-asr), story 5.6.
 asrenv/
 .pytest_cache/
@@ -35,6 +36,7 @@ apps/mobile/assets/models/hausa_tts/model.onnx
 # --- Environnement / secrets ---
 .env
 *.env
+.env.*
 !.env.example
 
 # --- Base locale ---
@@ -51,7 +53,10 @@ dataset/benchmark/*.jsonl
 dataset/benchmark/**/*.jsonl
 
 # --- Stockage runtime ---
-storage/
+/storage/
+
+# --- Artefacts locaux du deploiement VPS ---
+/bin/
 
 # --- Outil de collecte de corpus (entrainement/) ---
 # L'APK est un artefact de compilation : 52 Mo qui alourdiraient le dépôt

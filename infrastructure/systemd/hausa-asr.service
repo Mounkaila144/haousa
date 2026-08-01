@@ -48,12 +48,18 @@ EnvironmentFile=/opt/hausa/.env.asr
 # Ce réglage dépend du matériel, pas du code : le re-mesurer si le VPS change.
 Environment=OMP_NUM_THREADS=2
 Environment=MKL_NUM_THREADS=2
+Environment=HF_HUB_OFFLINE=1
+Environment=TRANSFORMERS_OFFLINE=1
+Environment=TOKENIZERS_PARALLELISM=false
+# Le /usr/bin/ffmpeg de ce VPS pointe dans /home/xtreamcodes, masque par
+# ProtectHome. Une copie statique dediee est installee dans /opt/hausa/bin.
+Environment=PATH=/opt/hausa/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
 
 # Cache des poids du modèle : hors du home, pour survivre à un redéploiement.
 Environment=HF_HOME=/opt/hausa/models
 ExecStart=/opt/hausa/asrenv/bin/python /opt/hausa/services/asr/local_server.py \
     --host 127.0.0.1 \
-    --port 8001
+    --port 8011
 
 # Cette machine n'est PAS dédiée à Hausa : elle héberge aussi un panel PHP-FPM,
 # MariaDB, Apache et des conteneurs Docker (307 h de CPU cumulées côté PHP au

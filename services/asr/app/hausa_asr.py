@@ -29,6 +29,7 @@ class HausaAsrSettings(BaseSettings):
     HAUSA_ASR_MODEL: str = "NCAIR1/Hausa-ASR"
     HAUSA_ASR_LOCAL_PATH: str = ""
     HF_TOKEN: str = ""
+    ASR_ENDPOINT_TOKEN: str = ""
     ASR_DEVICE: str = "auto"
     ASR_SAMPLE_RATE: int = Field(default=16_000, ge=8_000, le=48_000)
     ASR_MAX_AUDIO_SECONDS: float = Field(default=30.0, gt=0.0, le=300.0)
@@ -160,9 +161,11 @@ class HausaAsrService:
                 "model": local or self.settings.HAUSA_ASR_MODEL,
                 "device": _device_index(self.settings.ASR_DEVICE),
             }
-            if local:
-                options["local_files_only"] = True
-            elif self.settings.HF_TOKEN:
+            # Un chemin local, combine a HF_HUB_OFFLINE/TRANSFORMERS_OFFLINE
+            # dans l'unite systemd, suffit a interdire tout telechargement.
+            # transformers 5 transmettrait `local_files_only` a generate(),
+            # qui le refuse au moment de la premiere inference.
+            if not local and self.settings.HF_TOKEN:
                 options["token"] = self.settings.HF_TOKEN
             self._pipeline = pipeline(**options)
             self.load_error = None
