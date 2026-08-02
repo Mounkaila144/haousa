@@ -73,7 +73,9 @@ class CalculationView {
   ///
   /// `jikka` (1 000) s'écrit avec la gémination, mais la synthèse embarquée lit
   /// des caractères et non des phonèmes : elle rend « jika ». Le serveur fournit
-  /// alors `jik'ka`, qui rétablit la coupe syllabique attendue.
+  /// alors la forme parlée retenue (`jikk ka`), qui rétablit la coupe attendue.
+  /// Sa valeur vit dans le lexique serveur (`spoken_forms`) et peut changer
+  /// sans nouvelle version de l'application : ne jamais la recomposer ici.
   String get resultSpokenText => expression.resultSpokenText;
 
   /// Message de refus, formulé sans jargon et sans jamais suggérer un nombre.

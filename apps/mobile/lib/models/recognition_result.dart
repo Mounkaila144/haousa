@@ -138,8 +138,9 @@ class RecognizedExpression {
   final String resultHausaText;
 
   /// Forme du resultat a **prononcer**, vide si elle coincide avec
-  /// [resultHausaText]. `jikka` s'ecrit ainsi mais se lit `jik'ka` : la
-  /// synthese embarquee lit des caracteres, et perd la gemination.
+  /// [resultHausaText]. `jikka` s'ecrit ainsi mais se lit `jikk ka` : la
+  /// synthese embarquee lit des caracteres, et perd la gemination. La valeur
+  /// vient du lexique serveur et n'est jamais recomposee sur l'appareil.
   final String resultSpokenText;
   final String? refusalCode;
 
