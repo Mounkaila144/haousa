@@ -2,7 +2,8 @@
 
 La synthèse embarquée (Piper, ``phoneme_type: text``) lit des **caractères**,
 pas des phonèmes. Une gémination écrite ``kk`` lui échappe : ``jikka`` sort en
-« jika ». Le lexique porte donc une forme parlée distincte de la forme écrite.
+« jika ». Le lexique porte donc une forme parlée distincte de la forme écrite,
+retenue après écoute sur l'appareil : ``jikk ka``.
 """
 
 from __future__ import annotations
@@ -12,16 +13,16 @@ import pytest
 
 
 def test_lexicon_exposes_spoken_forms():
-    assert hausa_numbers.load_lexicon().spoken_forms.get("jikka") == "jik'ka"
+    assert hausa_numbers.load_lexicon().spoken_forms.get("jikka") == "jikk ka"
 
 
 @pytest.mark.parametrize(
     ("written", "spoken"),
     [
-        ("jikka", "jik'ka"),
-        ("jikka biyar", "jik'ka biyar"),
-        ("jikka goma sha ɗaya", "jik'ka goma sha ɗaya"),
-        ("jikka biyar a hidda goma", "jik'ka biyar a hidda goma"),
+        ("jikka", "jikk ka"),
+        ("jikka biyar", "jikk ka biyar"),
+        ("jikka goma sha ɗaya", "jikk ka goma sha ɗaya"),
+        ("jikka biyar a hidda goma", "jikk ka biyar a hidda goma"),
     ],
 )
 def test_thousand_is_spoken_with_a_syllable_break(written, spoken):
@@ -39,10 +40,10 @@ def test_text_without_a_spoken_form_is_left_untouched(written):
 def test_spoken_form_is_never_an_accepted_input():
     """La forme parlée ne doit pas devenir une deuxième forme canonique.
 
-    Si ``jik'ka`` était analysable, le lexique aurait deux écritures concurrentes
+    Si ``jikk ka`` était analysable, le lexique aurait deux écritures concurrentes
     pour 1 000 et le corpus d'entraînement se retrouverait avec les deux.
     """
-    assert hausa_numbers.parse("jik'ka") is None
+    assert hausa_numbers.parse("jikk ka") is None
     assert hausa_numbers.parse("jikka") == 1_000
 
 

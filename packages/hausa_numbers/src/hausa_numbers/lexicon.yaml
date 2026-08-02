@@ -1,4 +1,4 @@
-version: "2.3.0-hausa"
+version: "2.4.0-hausa"
 language: ha
 status: draft
 zero: {value: 0, canonical: sifili, variants: [sifili, sifiri], status: validé}
@@ -54,8 +54,13 @@ asr_confusions:
 #
 # Le modele Piper embarque est en `phoneme_type: text` — il lit les caracteres,
 # pas des phonemes espeak. Une gemination ecrite `kk` lui passe donc sous le
-# nez et `jikka` sort en « jika ». L'apostrophe, elle, fait partie de son
-# vocabulaire (token 5, c'est ce qui fait fonctionner `arba'in` ou `tasa'in`) :
-# elle sepàre nettement les deux syllabes, « jik » puis « ka ».
+# nez et `jikka` sort en « jika ».
+#
+# Forme retenue apres ECOUTE sur l'appareil : `jikk ka`. L'espace est un token
+# du modele au meme titre qu'une lettre, et c'est lui qui rend le mieux la
+# coupe attendue — « jikk » puis « ka ». Une variante a l'apostrophe
+# (`jik'ka`) avait ete essayee d'abord : correcte sur le papier, moins bonne a
+# l'oreille. La chaine mobile rejoint les segments en UNE seule chaine avant
+# synthese (voice_bank.dart), donc l'espace n'introduit aucune pause.
 spoken_forms:
-  jikka: "jik'ka"
+  jikka: "jikk ka"
