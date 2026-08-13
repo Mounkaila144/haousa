@@ -206,7 +206,7 @@ def main() -> int:
     parseur.add_argument(
         "--corpus",
         type=Path,
-        default=Path("/content/hausa_tts/tts_corpus"),
+        default=Path("/content/hausa_tts/corpus"),
         help="corpus dont les énoncés servent au contrôle (défaut : %(default)s)",
     )
     args = parseur.parse_args()

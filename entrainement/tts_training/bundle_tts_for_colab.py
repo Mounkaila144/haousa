@@ -10,9 +10,9 @@ ensemble, donc toujours cohérents.
 
 Contenu de `hausa_tts.zip` (tout sous `hausa_tts/`) :
 
-    tts_corpus/wavs/            375 clips élagués, 22 050 Hz
-    tts_corpus/train.csv        356 énoncés — ce que Piper voit
-    tts_corpus/val.csv          19 énoncés tenus à l'écart, pour l'écoute
+    corpus/wavs/                375 clips élagués, 22 050 Hz
+    corpus/train.csv            356 énoncés — ce que Piper voit
+    corpus/val.csv              19 énoncés tenus à l'écart, pour l'écoute
     train_tts_piper_colab.py    l'entraînement
     convert_tts_for_sherpa.py   la conversion vers le format du mobile
 
@@ -30,7 +30,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 
 SOURCES = {
-    "tts_corpus": ROOT / "dataset" / "tts" / "corpus",
+    # La cle est indicative : l'archive conserve le nom REEL du dossier
+    # (`corpus`), et c'est ce nom que les scripts attendent cote Colab.
+    "corpus": ROOT / "dataset" / "tts" / "corpus",
     "train_tts_piper_colab.py": Path(__file__).with_name("train_tts_piper_colab.py"),
     "convert_tts_for_sherpa.py": Path(__file__).with_name("convert_tts_for_sherpa.py"),
 }

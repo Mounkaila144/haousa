@@ -596,7 +596,13 @@ def main() -> int:
     )
     parseur.add_argument("--epoques", type=int, default=300, help="époques à ajouter")
     parseur.add_argument("--lot", type=int, default=16, help="taille de lot (T4 : 16)")
-    parseur.add_argument("--corpus", type=Path, default=Path("/content/hausa_tts/tts_corpus"))
+    parseur.add_argument(
+        "--corpus",
+        type=Path,
+        # Nom du dossier tel que l'archive le depose : `bundle_tts_for_colab.py`
+        # conserve le nom reel du repertoire source (`dataset/tts/corpus`).
+        default=Path("/content/hausa_tts/corpus"),
+    )
     parseur.add_argument(
         "--drive",
         type=Path,
