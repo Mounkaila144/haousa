@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hausa_mobile/config/thousand_naming.dart';
 import 'package:hausa_mobile/widgets/brand_app_bar.dart';
 import 'package:hausa_mobile/widgets/brand_footer.dart';
+import 'package:hausa_mobile/widgets/country_flag.dart';
 
 /// Réglages de l'application.
 ///
@@ -49,7 +50,11 @@ class SettingsScreen extends ConsumerWidget {
                     RadioListTile<ThousandNaming>(
                       key: Key('thousand-naming-${naming.wireValue}'),
                       value: naming,
-                      title: Text(naming.label, style: textTheme.titleMedium),
+                      secondary: CountryFlag(naming: naming, height: 28),
+                      title: Text(
+                        '${naming.label} — ${naming.countryLabel}',
+                        style: textTheme.titleMedium,
+                      ),
                       subtitle: Text(_exampleFor(naming)),
                     ),
                 ],

@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hausa_mobile/config/thousand_naming.dart';
 import 'package:hausa_mobile/navigation/app_routes.dart';
 import 'package:hausa_mobile/theme/brand.dart';
 import 'package:hausa_mobile/widgets/brand_app_bar.dart';
 import 'package:hausa_mobile/widgets/brand_footer.dart';
+import 'package:hausa_mobile/widgets/country_flag.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       key: const Key('home-screen'),
       appBar: BrandAppBar(
@@ -91,9 +94,70 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                 ),
+                Positioned(
+                  left: 16,
+                  right: 16,
+                  bottom: 16,
+                  child: Center(child: _CountryPicker()),
+                ),
               ],
             );
           },
+        ),
+      ),
+    );
+  }
+}
+
+/// Choix du pays — donc de l'appellation du millier prononcée par la voix.
+///
+/// Niger dit `jika`, Nigeria dit `dubu` ; les deux valent 1 000 F CFA. Le choix
+/// ne change **que** ce que l'application dit : elle continue de comprendre les
+/// deux mots à l'écoute, afin qu'un drapeau mal choisi ne la rende jamais
+/// sourde à son utilisateur.
+class _CountryPicker extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ThousandNaming selected = ref.watch(thousandNamingProvider);
+
+    return Card(
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton<ThousandNaming>(
+            key: const Key('country-picker'),
+            value: selected,
+            borderRadius: BorderRadius.circular(12),
+            // Le drapeau est le repère ; le nom du pays ne sert qu'à ceux qui
+            // lisent, et à la synthèse vocale d'accessibilité.
+            items: <DropdownMenuItem<ThousandNaming>>[
+              for (final ThousandNaming naming in ThousandNaming.values)
+                DropdownMenuItem<ThousandNaming>(
+                  key: Key('country-${naming.wireValue}'),
+                  value: naming,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      CountryFlag(naming: naming, height: 26),
+                      const SizedBox(width: 10),
+                      Text(
+                        naming.countryLabel,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+            onChanged: (ThousandNaming? chosen) {
+              if (chosen != null) {
+                ref.read(thousandNamingProvider.notifier).select(chosen);
+              }
+            },
+          ),
         ),
       ),
     );

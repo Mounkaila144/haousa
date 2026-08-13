@@ -13,16 +13,22 @@ const String _thousandNamingFileName = 'thousand-naming';
 /// quelle que soit sa valeur, sans quoi un mauvais réglage rendrait
 /// l'application sourde à son propre utilisateur.
 enum ThousandNaming {
-  jika('jika', 'Jika'),
-  dubu('dubu', 'Dubu');
+  jika('jika', 'Jika', 'Niger'),
+  dubu('dubu', 'Dubu', 'Nigeria');
 
-  const ThousandNaming(this.wireValue, this.label);
+  const ThousandNaming(this.wireValue, this.label, this.countryLabel);
 
   /// Valeur envoyée à l'API — le serveur produit la forme correspondante.
   final String wireValue;
 
   /// Libellé affiché dans les paramètres.
   final String label;
+
+  /// Pays où cette appellation est employée. Le choix se présente à
+  /// l'utilisateur sous forme de drapeau : c'est le seul repère utilisable
+  /// par quelqu'un qui ne lit pas. Il désigne **la même** préférence — pas un
+  /// second réglage, sans quoi les deux pourraient diverger.
+  final String countryLabel;
 
   static ThousandNaming fromWire(String? value) {
     return ThousandNaming.values.firstWhere(
