@@ -1,0 +1,18 @@
+{
+  "runtime": "sherpa_onnx",
+  "frontend": "characters",
+  "phonemizer_resources": [],
+  "voice": "hausa-nombres",
+  "sample_rate": 22050,
+  "files": {
+    "model.onnx": {
+      "bytes": 63516350
+    },
+    "model.onnx.json": {
+      "bytes": 5031
+    },
+    "tokens.txt": {
+      "bytes": 966
+    }
+  }
+}

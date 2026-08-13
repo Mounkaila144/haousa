@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hausa_mobile/speech/hausa_tts_engine.dart';
@@ -10,6 +13,80 @@ class _UnusedBundle extends CachingAssetBundle {
 }
 
 void main() {
+  group('le modèle réellement livré', () {
+    // Ces contrôles portent sur l'asset embarqué, pas sur un JSON fabriqué :
+    // c'est ce couple-là qui part sur le téléphone. L'ancienne contrainte `M3`
+    // n'aurait été détectée qu'ici, après des heures d'entraînement.
+    Map<String, dynamic> config() =>
+        jsonDecode(
+              File('assets/models/hausa_tts/model.onnx.json').readAsStringSync(),
+            )
+            as Map<String, dynamic>;
+
+    test('est mono-locuteur et se résout sans choix à faire', () {
+      final String brut = File(
+        'assets/models/hausa_tts/model.onnx.json',
+      ).readAsStringSync();
+      expect(config()['num_speakers'], 1);
+      expect(resolveSpeakerId(brut), 0);
+    });
+
+    test('lit des caractères, jamais des phonèmes espeak', () {
+      // espeak-ng ne connaît pas le hausa : s'il était appelé, il
+      // phonétiserait le texte en français avant d'atteindre le réseau.
+      expect(config()['phoneme_type'], 'text');
+    });
+
+    test('sa table couvre tout ce que l’application prononce', () {
+      // Un caractère absent serait ignoré EN SILENCE par le frontend.
+      final Map<String, dynamic> carte =
+          config()['phoneme_id_map'] as Map<String, dynamic>;
+      const List<String> enonces = <String>[
+        'sifili',
+        'ɗari da hamsin',
+        'jikka biyar da ɗari',
+        'dubu goma',
+        "tasa'in da tara",
+        'goma sha ɗaya',
+        'ɗari a ƙara jikka',
+        'ɗari sau ɗari',
+        'jikka saura ɗari',
+      ];
+      for (final String enonce in enonces) {
+        for (final int rune in normalizeHausaTtsText(enonce).runes) {
+          final String caractere = String.fromCharCode(rune);
+          expect(
+            carte.containsKey(caractere),
+            isTrue,
+            reason: 'absent de la table du modèle : ${jsonEncode(caractere)} '
+                '(énoncé « $enonce »)',
+          );
+        }
+      }
+    });
+
+    test('le manifeste décrit les tailles réelles des fichiers', () {
+      final Map<String, dynamic> manifeste =
+          jsonDecode(
+                File(
+                  'assets/models/hausa_tts/asset_manifest.json',
+                ).readAsStringSync(),
+              )
+              as Map<String, dynamic>;
+      final Map<String, dynamic> fichiers =
+          manifeste['files'] as Map<String, dynamic>;
+      for (final String nom in <String>[
+        'model.onnx',
+        'model.onnx.json',
+        'tokens.txt',
+      ]) {
+        final int attendu =
+            (fichiers[nom] as Map<String, dynamic>)['bytes'] as int;
+        expect(File('assets/models/hausa_tts/$nom').lengthSync(), attendu);
+      }
+    });
+  });
+
   group('résolution du locuteur', () {
     // La voix est mono-locuteur : elle est entraînée sur une seule personne.
     // L'ancienne contrainte — un locuteur `M3` à l'identifiant 1 — venait d'un
