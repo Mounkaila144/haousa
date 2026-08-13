@@ -32,9 +32,9 @@ Toutes les **formes de sortie** du moteur, et elles seules :
 Sortie
 ------
 
-En-tête ``id,texte_zarma,affichage`` : c'est le contrat exact qu'impose le
-Studio vocal (`entrainement/tts_recorder/lib/csv_codec.dart`). Le nom de la
-colonne est celui de l'outil, pas une affirmation sur la langue.
+En-tête ``id,texte_hausa,affichage`` : contrat du Studio vocal hausa
+(``entrainement/tts_recorder``), forké du studio zarma et renommé pour ce
+projet.
 
 Usage :
 
@@ -159,6 +159,10 @@ def build_corpus() -> Corpus:
     # L'écran de confirmation relit l'opération entendue : elle doit se dire
     # aussi naturellement que le résultat.
     money_pool = [n * UNIT_CFA for n in range(1, 200)] + [n * THOUSAND_CFA for n in range(1, 100)]
+    # Les identifiants deviennent des noms de fichiers WAV : on nomme les
+    # opérateurs plutôt que d'y mettre `*` ou `/`, qui obligeraient l'outil à
+    # les échapper et rendraient les prises pénibles à retrouver à la main.
+    operator_slugs = {"+": "add", "-": "sub", "*": "mul", "/": "div"}
     for symbol in ("+", "-", "*", "/"):
         scalar_right = symbol in {"*", "/"}
         for _ in range(20):
@@ -166,7 +170,7 @@ def build_corpus() -> Corpus:
             right = rng.choice(range(2, 101)) if scalar_right else rng.choice(money_pool)
             expression = Expression(left, symbol, right)
             corpus.add(
-                f"op_{symbol}_{left}_{right}",
+                f"op_{operator_slugs[symbol]}_{left}_{right}",
                 render_expression(expression),
                 f"{left} {symbol} {right}",
             )
@@ -204,7 +208,7 @@ def main() -> int:
     stream = args.output.open("w", encoding="utf-8", newline="") if args.output else sys.stdout
     try:
         writer = csv.writer(stream, quoting=csv.QUOTE_MINIMAL)
-        writer.writerow(["id", "texte_zarma", "affichage"])
+        writer.writerow(["id", "texte_hausa", "affichage"])
         writer.writerows(corpus.rows)
     finally:
         if args.output:
