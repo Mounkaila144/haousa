@@ -11,8 +11,12 @@ class AppConfig {
 
   factory AppConfig.fromEnvironment() {
     const String configuredApiBaseUrl = String.fromEnvironment('API_BASE_URL');
+    // Le vhost `ia-ptrniger.duckdns.org` héberge encore l'ancien service Zarma sous
+    // `/api/v1` ; l'API hausa est servie sous le préfixe `/hausa` (cf.
+    // `infrastructure/nginx/hausa.conf`). Omettre le préfixe fait tomber
+    // l'application sur une API qui répond `zarma_text` et une grammaire 1.5.0.
     final String defaultApiBaseUrl = defaultTargetPlatform == TargetPlatform.iOS
-        ? 'https://ia.ptrniger.com/api/v1'
+        ? 'https://ia-ptrniger.duckdns.org/hausa/api/v1'
         : 'http://10.0.2.2:8000/api/v1';
 
     return AppConfig(

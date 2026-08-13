@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       api_base_url:
-        description: URL HTTPS de l'API de production
+        description: URL HTTPS de l'API de production (préfixe /hausa obligatoire)
         required: true
-        default: https://ia.ptrniger.com/api/v1
+        default: https://ia-ptrniger.duckdns.org/hausa/api/v1
 
 permissions:
   contents: read

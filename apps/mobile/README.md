@@ -31,8 +31,12 @@ Pour lancer en une ligne sur le premier téléphone branché en USB contre la
 production :
 
 ```bash
-cd apps/mobile && flutter run -d "$(adb devices | awk 'NR==2 {print $1}')" --dart-define=API_BASE_URL=https://ia.ptrniger.com/api/v1
+cd apps/mobile && flutter run -d "$(adb devices | awk 'NR==2 {print $1}')" --dart-define=API_BASE_URL=https://ia-ptrniger.duckdns.org/hausa/api/v1
 ```
+
+Le préfixe `/hausa` est **obligatoire** : le même vhost sert encore l'ancienne
+API Zarma sous `/api/v1`, qui répond `zarma_text` et annonce une grammaire
+`1.5.0`. Sans le préfixe, l'application ne reçoit aucune forme hausa.
 
 Le build Android courant est `2` (`version: 1.1.0+2` dans `pubspec.yaml`). Le
 numéro envoyé dans `X-App-Build` doit être incrémenté à chaque publication.
