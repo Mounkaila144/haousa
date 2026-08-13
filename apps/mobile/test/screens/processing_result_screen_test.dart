@@ -113,9 +113,11 @@ void main() {
       final RecognitionResult result = _result(Decision.accept);
 
       await tester.pumpWidget(
-        MaterialApp(
-          routes: _routesWithoutHome(),
-          home: ResultScreen(result: result),
+        ProviderScope(
+          child: MaterialApp(
+            routes: _routesWithoutHome(),
+            home: ResultScreen(result: result),
+          ),
         ),
       );
 

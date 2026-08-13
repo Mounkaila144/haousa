@@ -73,7 +73,7 @@ def accept_consent(anon_id: str) -> str:
     return response.json()["id"]
 
 
-def upload(consent_id: str, anon_id: str, number: int = 42):
+def upload(consent_id: str, anon_id: str, number: int = 40):
     return client.post(
         "/api/v1/recordings",
         files={"audio": ("voice.wav", make_wav(), "audio/wav")},
@@ -81,7 +81,7 @@ def upload(consent_id: str, anon_id: str, number: int = 42):
             "consent_id": consent_id,
             "anon_id": anon_id,
             "expected_number": str(number),
-            "expected_prompt": hausa_numbers.generate(number),
+            "expected_prompt": hausa_numbers.format_money(number),
             "grammar_version": hausa_numbers.load_lexicon().grammar_version,
             "region": "Niamey",
             "device_info": "private-device",
@@ -113,7 +113,7 @@ def test_withdrawal_deletes_all_audio_and_anonymizes_tombstones(
     consent_ids = [accept_consent(ANON_A), accept_consent(ANON_A)]
     contribution_ids = []
     for index, status in enumerate(("pending", "validated", "rejected")):
-        response = upload(consent_ids[index % 2], ANON_A, 40 + index)
+        response = upload(consent_ids[index % 2], ANON_A, 40 + index * 5)
         assert response.status_code == 201
         contribution_ids.append(UUID(response.json()["id"]))
 
@@ -153,7 +153,8 @@ def test_withdrawal_deletes_all_audio_and_anonymizes_tombstones(
     assert len({row.anon_id for row in targets}) == 3
     assert len({row.speaker_key for row in targets}) == 3
     assert all(reference is not None for reference in original_refs)
-    assert {row.expected_number for row in targets} == {40, 41, 42}
+    # Montants valides : l'unite de compte de la calculatrice est de 5 F.
+    assert {row.expected_number for row in targets} == {40, 45, 50}
     assert {str(row.consent_id) for row in targets} == set(consent_ids)
 
 
@@ -169,7 +170,7 @@ def test_withdrawal_is_isolated_and_blocks_old_consent(
     assert contribution_a.status_code == contribution_b.status_code == 201
 
     response = withdraw(ANON_A)
-    rejected_upload = upload(consent_a, ANON_A, 43)
+    rejected_upload = upload(consent_a, ANON_A, 55)
 
     assert response.status_code == 200
     assert rejected_upload.status_code == 403
@@ -221,11 +222,11 @@ def test_partial_storage_failure_revokes_immediately_and_retry_converges(
     root, store = audio_storage
     consent_id = accept_consent(ANON_A)
     assert upload(consent_id, ANON_A, 50).status_code == 201
-    assert upload(consent_id, ANON_A, 51).status_code == 201
+    assert upload(consent_id, ANON_A, 55).status_code == 201
     app.dependency_overrides[get_audio_store] = lambda: _FailOnceStore(store)
 
     failed = withdraw(ANON_A)
-    blocked = upload(consent_id, ANON_A, 52)
+    blocked = upload(consent_id, ANON_A, 60)
 
     assert failed.status_code == 503
     assert failed.json()["error"]["code"] == "WITHDRAWAL_INCOMPLETE"
@@ -305,7 +306,7 @@ def test_revocation_winning_before_upload_commit_leaves_no_file_or_row(
     app.dependency_overrides[get_audio_store] = lambda: delayed
 
     with ThreadPoolExecutor(max_workers=1) as executor:
-        future_upload = executor.submit(upload, consent_id, ANON_A, 60)
+        future_upload = executor.submit(upload, consent_id, ANON_A, 65)
         assert delayed.saved.wait(timeout=5)
         withdrawal = withdraw(ANON_A)
         delayed.release.set()
@@ -325,8 +326,8 @@ def test_dataset_predicate_and_withdrawn_terminality(
 ) -> None:
     consent_id = accept_consent(ANON_A)
     validated = upload(consent_id, ANON_A, 70).json()["id"]
-    no_audio = upload(consent_id, ANON_A, 71).json()["id"]
-    withdrawn_id = upload(consent_id, ANON_A, 72).json()["id"]
+    no_audio = upload(consent_id, ANON_A, 75).json()["id"]
+    withdrawn_id = upload(consent_id, ANON_A, 80).json()["id"]
 
     async def run() -> tuple[list[UUID], bool]:
         async with db_session_factory() as session:

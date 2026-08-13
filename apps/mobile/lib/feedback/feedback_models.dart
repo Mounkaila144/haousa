@@ -150,9 +150,13 @@ class ConfirmedResult {
     required this.recognition,
     required this.number,
     required this.hausaText,
+    this.spokenText = '',
   });
 
   final RecognitionResult recognition;
   final int number;
   final String hausaText;
+
+  /// Forme à **prononcer** du candidat retenu, vide si identique à [hausaText].
+  final String spokenText;
 }

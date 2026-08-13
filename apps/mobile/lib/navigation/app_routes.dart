@@ -11,6 +11,7 @@ import 'package:hausa_mobile/screens/processing_screen.dart';
 import 'package:hausa_mobile/screens/privacy_screen.dart';
 import 'package:hausa_mobile/screens/recording_screen.dart';
 import 'package:hausa_mobile/screens/result_screen.dart';
+import 'package:hausa_mobile/screens/settings_screen.dart';
 import 'package:hausa_mobile/screens/startup_gate.dart';
 import 'package:hausa_mobile/widgets/brand_app_bar.dart';
 import 'package:hausa_mobile/widgets/brand_footer.dart';
@@ -29,6 +30,7 @@ abstract final class AppRoutes {
   static const String history = '/history';
   static const String contribute = '/contribute';
   static const String privacy = '/privacy';
+  static const String settings = '/settings';
 
   static final Map<String, WidgetBuilder> routes = <String, WidgetBuilder>{
     home: (_) => const StartupGate(),
@@ -36,6 +38,7 @@ abstract final class AppRoutes {
     history: (_) => const HistoryScreen(),
     contribute: (_) => const ContributionRoute(),
     privacy: (_) => const PrivacyScreen(),
+    settings: (_) => const SettingsScreen(),
   };
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {

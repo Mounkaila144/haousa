@@ -12,12 +12,20 @@ from hausa_numbers import (
 @pytest.mark.parametrize(
     ("text", "left", "symbol", "right", "result"),
     [
-        ("ashirin da uku a ƙara goma sha biyar", 23, "+", 15, 38),
-        ("ɗari biyar a hidda ɗari biyu", 500, "-", 200, 300),
-        ("goma sau biyar", 10, "*", 5, 50),
-        ("ɗari ɗaya a raba chi sau biyu", 100, "/", 2, 50),
-        ("tasa'in da tara a kara daya", 99, "+", 1, 100),
-        ("jika biyu a hidda ɗari biyar", 2000, "-", 500, 1500),
+        # Montants en francs CFA : sous le millier un mot vaut 5 F par unité
+        # numérique (`ashirin da uku` = 23 × 5 = 115 F).
+        ("ashirin da uku a ƙara goma sha biyar", 115, "+", 75, 190),
+        ("ɗari biyar a hidda ɗari biyu", 2500, "-", 1000, 1500),
+        ("tasa'in da tara a kara daya", 495, "+", 5, 500),
+        # `jika biyu` (2 000 F) et `ɗari biyu` (200 × 5) sont deux façons de
+        # dire des montants du même système : la soustraction les mêle sans
+        # conversion.
+        ("jika biyu a hidda ɗari biyu", 2000, "-", 1000, 1000),
+        # À droite de `sau` et de `raba`, le nombre compte des fois : c'est un
+        # multiplicateur, pas un montant (`biyar` = 5, non 25 F).
+        ("goma sau biyar", 50, "*", 5, 250),
+        ("ɗari ɗaya a raba chi sau biyu", 500, "/", 2, 250),
+        ("ɗari sau ɗari", 500, "*", 100, 50_000),
     ],
 )
 def test_operations(text, left, symbol, right, result):
@@ -33,7 +41,8 @@ def test_central_parser_keeps_trace():
     parsed = parse_hausa_operation("ashirin da uku a kara goma sha biyar")
     assert parsed.normalized_text == "ashirin da uku a ƙara goma sha biyar"
     assert parsed.operator == "add"
-    assert (parsed.left_value, parsed.right_value) == (23, 15)
+    # Valeurs en francs CFA : 23 × 5 et 15 × 5.
+    assert (parsed.left_value, parsed.right_value) == (115, 75)
 
 
 @pytest.mark.parametrize(

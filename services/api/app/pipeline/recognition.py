@@ -86,16 +86,24 @@ def _recognize_expression(
         return expression, None, exc.code
 
 
-def run_recognition_pipeline(asr_result: AsrResult, settings: Settings) -> RecognitionOutcome:
+def run_recognition_pipeline(
+    asr_result: AsrResult,
+    settings: Settings,
+    naming: hausa_numbers.ThousandNaming = hausa_numbers.DEFAULT_THOUSAND_NAMING,
+) -> RecognitionOutcome:
     """Exécute normalisation → parsing → confiance → politique sur un ``AsrResult``.
 
     Aucun nombre n'est inventé : un texte ni numérique ni arithmétique reste
     ``number is None`` et conduit à ``repeat`` (FR21). Comportement identique à
     la route.
+
+    ``naming`` ne touche qu'à la **restitution** : `jika` et `dubu` restent
+    tous deux compris à l'entrée quelle que soit sa valeur. Les montants
+    calculés, eux, ne dépendent jamais de ce réglage.
     """
 
     normalized_text = hausa_numbers.normalize(asr_result.text)
-    number = hausa_numbers.parse(normalized_text)
+    number = hausa_numbers.parse_money(normalized_text)
 
     expression = expression_result = refusal_code = None
     if number is None:
@@ -122,17 +130,19 @@ def run_recognition_pipeline(asr_result: AsrResult, settings: Settings) -> Recog
         settings=settings,
         expression_recognized=expression_recognized,
     )
-    hausa_text = hausa_numbers.generate(number) if number is not None else ""
+    hausa_text = hausa_numbers.format_money(number, naming) if number is not None else ""
     spoken_text = ""
     if expression is not None:
-        hausa_text = hausa_numbers.render_expression(expression)
-        parle = hausa_numbers.render_spoken(expression)
+        hausa_text = hausa_numbers.render_expression(expression, naming)
+        parle = hausa_numbers.render_spoken(expression, naming)
         # Renseigné seulement s'il apporte quelque chose : un champ toujours
         # présent inviterait à s'en servir partout, y compris là où c'est
         # l'identité qui compte.
         spoken_text = parle if parle != hausa_text else ""
     result_hausa_text = (
-        hausa_numbers.render_result(expression_result) if expression_result is not None else ""
+        hausa_numbers.render_result(expression_result, naming)
+        if expression_result is not None
+        else ""
     )
     # Un nombre seul est lui aussi prononcé : la forme parlée ne concerne donc
     # pas que les opérations.

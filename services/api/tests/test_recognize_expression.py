@@ -64,14 +64,14 @@ def recognize() -> dict:
 
 
 def test_expression_is_recognized_and_evaluated(mock_recognizer):
-    mock_recognizer.set_text(render_expression(Expression(23, "+", 15)), acoustic_score=0.95)
+    mock_recognizer.set_text(render_expression(Expression(115, "+", 75)), acoustic_score=0.95)
     body = recognize()
 
     expression = body["expression"]
-    assert (expression["left"], expression["operator"], expression["right"]) == (23, "+", 15)
-    assert expression["result"] == 38
+    assert (expression["left"], expression["operator"], expression["right"]) == (115, "+", 75)
+    assert expression["result"] == 190
     assert expression["remainder"] == 0
-    assert expression["result_hausa_text"] == hausa_numbers.generate(38)
+    assert expression["result_hausa_text"] == hausa_numbers.format_money(190)
     assert expression["refusal_code"] is None
     assert body["decision"] in {"accept", "confirm"}
 
@@ -104,7 +104,7 @@ def test_division_with_remainder_is_carried_by_the_contract():
 
 def test_out_of_domain_expression_is_refused_not_invented(mock_recognizer):
     """3 − 5 : l'énoncé est compris, la réponse n'existe pas. On le dit (FR21)."""
-    mock_recognizer.set_text(render_expression(Expression(3, "-", 5)))
+    mock_recognizer.set_text(render_expression(Expression(15, "-", 25)))
     expression = recognize()["expression"]
 
     assert expression["result"] is None
@@ -114,7 +114,7 @@ def test_out_of_domain_expression_is_refused_not_invented(mock_recognizer):
 
 def test_understood_but_impossible_is_not_a_repeat(mock_recognizer):
     """Demander de répéter serait faux : l'utilisateur a été parfaitement compris."""
-    mock_recognizer.set_text(render_expression(Expression(3, "-", 5)), acoustic_score=1.0)
+    mock_recognizer.set_text(render_expression(Expression(15, "-", 25)), acoustic_score=1.0)
     body = recognize()
 
     assert body["decision"] != "repeat"
@@ -123,20 +123,20 @@ def test_understood_but_impossible_is_not_a_repeat(mock_recognizer):
 
 def test_expression_hausa_text_is_replayable(mock_recognizer):
     """La forme portée par l'API doit pouvoir être relue à voix haute telle quelle."""
-    text = render_expression(Expression(23, "+", 15))
+    text = render_expression(Expression(115, "+", 75))
     mock_recognizer.set_text(text)
 
     assert recognize()["expression"]["hausa_text"] == text
 
 
 def test_expression_is_persisted_and_returned_by_history(mock_recognizer):
-    mock_recognizer.set_text(render_expression(Expression(23, "+", 15)))
+    mock_recognizer.set_text(render_expression(Expression(115, "+", 75)))
     recognized = recognize()
 
     history = client.get("/api/v1/history", params={"anon_id": ANON_ID, "limit": 5})
     assert history.status_code == 200
     row = next(item for item in history.json() if item["id"] == recognized["id"])
-    assert row["expression"]["result"] == 38
+    assert row["expression"]["result"] == 190
     assert row["hausa_text"] == recognized["expression"]["hausa_text"]
 
 
@@ -156,22 +156,22 @@ def test_unintelligible_speech_still_asks_to_repeat(mock_recognizer):
 
 
 def test_number_only_response_carries_no_expression(mock_recognizer):
-    mock_recognizer.set_text(hausa_numbers.generate(42), acoustic_score=0.95)
+    mock_recognizer.set_text(hausa_numbers.format_money(210), acoustic_score=0.95)
     body = recognize()
 
     assert body["expression"] is None
-    assert body["recognized_number"] == 42
-    assert body["hausa_text"] == hausa_numbers.generate(42)
+    assert body["recognized_number"] == 210
+    assert body["hausa_text"] == hausa_numbers.format_money(210)
 
 
-@pytest.mark.parametrize("value", [0, 1, 42, 105, 1234, 99_999])
+@pytest.mark.parametrize("value", [0, 5, 210, 525, 6_170, 499_995])
 def test_number_only_pipeline_is_byte_for_byte_unchanged(mock_recognizer, value):
     """L'ajout des expressions ne doit toucher aucun champ du chemin numérique."""
     from app.asr.base import AsrResult
     from app.config import get_settings
 
     asr = AsrResult(
-        text=hausa_numbers.generate(value),
+        text=hausa_numbers.format_money(value),
         acoustic_score=0.9,
         candidates=[],
         latency_ms=10,
@@ -180,7 +180,7 @@ def test_number_only_pipeline_is_byte_for_byte_unchanged(mock_recognizer, value)
     outcome = run_recognition_pipeline(asr, get_settings())
 
     assert outcome.number == value
-    assert outcome.hausa_text == hausa_numbers.generate(value)
+    assert outcome.hausa_text == hausa_numbers.format_money(value)
     assert outcome.expression is None
     assert outcome.expression_result is None
     assert outcome.refusal_code is None

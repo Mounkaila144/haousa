@@ -49,6 +49,11 @@ class RecognitionAlternative(BaseModel):
 
     number: int | None
     hausa_text: str
+    #: Forme **à prononcer** du candidat, vide si identique à ``hausa_text``.
+    #:
+    #: Un candidat retenu sur l'écran de confirmation est ensuite prononcé :
+    #: sans ce champ il repartirait avec la seule forme écrite.
+    spoken_text: str = ""
     score: float = Field(ge=0.0, le=1.0)
 
 
@@ -90,6 +95,12 @@ class RecognitionResponse(BaseModel):
     id: UUID
     recognized_number: int | None
     hausa_text: str
+    #: Forme **à prononcer** de ``hausa_text``, vide si elle lui est identique.
+    #:
+    #: Un énoncé « nombre seul » n'a pas d'``expression`` : sans ce champ, la
+    #: forme parlée calculée par le pipeline (``jikka`` -> ``jikk ka``) n'aurait
+    #: aucun moyen d'atteindre le client, et la synthèse lirait la forme écrite.
+    spoken_text: str = ""
     normalized_text: str
     confidence: float = Field(ge=0.0, le=1.0)
     decision: Literal["accept", "confirm", "repeat"]
@@ -104,7 +115,11 @@ class RecognitionResponse(BaseModel):
     model_config = {"protected_namespaces": (), "from_attributes": True}
 
 
-def _alternative_from(text: str, score: float) -> RecognitionAlternative:
+def _alternative_from(
+    text: str,
+    score: float,
+    naming: hausa_numbers.ThousandNaming = hausa_numbers.DEFAULT_THOUSAND_NAMING,
+) -> RecognitionAlternative:
     """Alternative ASR résolue en nombre **ou** en opération (story 6.1).
 
     Un nombre reste rendu comme avant. Une alternative qui est une opération
@@ -113,22 +128,43 @@ def _alternative_from(text: str, score: float) -> RecognitionAlternative:
     plutôt qu'une transcription brute. Une opération hors domaine n'a pas de
     valeur : elle garde son texte, sans nombre inventé (FR21).
     """
-    number = hausa_numbers.parse(text)
+    number = hausa_numbers.parse_money(text)
     if number is not None:
+        hausa_text = hausa_numbers.format_money(number, naming)
         return RecognitionAlternative(
-            number=number, hausa_text=hausa_numbers.generate(number), score=score
+            number=number,
+            hausa_text=hausa_text,
+            spoken_text=_spoken_or_empty(hausa_text),
+            score=score,
         )
 
     expression = hausa_numbers.parse_expression(text)
     if expression is not None:
-        hausa_text = hausa_numbers.render_expression(expression)
+        hausa_text = hausa_numbers.render_expression(expression, naming)
         try:
             value = hausa_numbers.evaluate(expression).value
         except hausa_numbers.DomainError:
             value = None
-        return RecognitionAlternative(number=value, hausa_text=hausa_text, score=score)
+        return RecognitionAlternative(
+            number=value,
+            hausa_text=hausa_text,
+            spoken_text=_spoken_or_empty(hausa_text),
+            score=score,
+        )
 
+    # Transcription brute non analysée : aucune forme parlée ne peut être
+    # dérivée sans risquer de prononcer autre chose que ce qui a été entendu.
     return RecognitionAlternative(number=None, hausa_text=text, score=score)
+
+
+def _spoken_or_empty(hausa_text: str) -> str:
+    """Forme parlée de ``hausa_text``, ou ``""`` quand elle lui est identique.
+
+    Le vide est significatif : il dit au client que la forme écrite se prononce
+    telle quelle, plutôt que de dupliquer la même chaîne dans deux champs.
+    """
+    spoken = hausa_numbers.to_spoken(hausa_text)
+    return spoken if spoken != hausa_text else ""
 
 
 async def _run_pipeline(
@@ -139,12 +175,13 @@ async def _run_pipeline(
     anon_id: UUID,
     settings: Settings,
     request_start: float,
+    naming: hausa_numbers.ThousandNaming,
 ) -> RecognitionResponse:
     asr_result: AsrResult = await asyncio.to_thread(
         recognizer.transcribe,
         AudioInput(data=audio.pcm, format="pcm_s16le"),
     )
-    outcome = run_recognition_pipeline(asr_result, settings)
+    outcome = run_recognition_pipeline(asr_result, settings, naming)
 
     expression = None
     if outcome.expression is not None:
@@ -168,7 +205,8 @@ async def _run_pipeline(
         reverse=True,
     )
     alternatives = [
-        _alternative_from(candidate.text, candidate.score) for candidate in sorted_candidates
+        _alternative_from(candidate.text, candidate.score, naming)
+        for candidate in sorted_candidates
     ]
     latency_total_ms = max(
         int((perf_counter() - request_start) * 1000),
@@ -179,6 +217,7 @@ async def _run_pipeline(
         id=uuid4(),
         recognized_number=outcome.number,
         hausa_text=outcome.hausa_text,
+        spoken_text=outcome.spoken_text,
         normalized_text=outcome.normalized_text,
         confidence=outcome.confidence.score,
         decision=outcome.decision,
@@ -227,6 +266,10 @@ async def recognize(
         UUID | None,
         Form(description="Current consent UUID"),
     ] = None,
+    thousand_naming: Annotated[
+        Literal["jika", "dubu"],
+        Form(description="Appellation du millier a PRONONCER ; les deux restent comprises"),
+    ] = hausa_numbers.DEFAULT_THOUSAND_NAMING,
 ) -> RecognitionResponse | JSONResponse:
     """Valide puis exécute ASR → normalisation → parsing sous timeout."""
 
@@ -258,6 +301,7 @@ async def recognize(
                 anon_id=anon_id,
                 settings=settings,
                 request_start=request_start,
+                naming=thousand_naming,
             )
             if consent_id is None or audio_ref is None:
                 return response

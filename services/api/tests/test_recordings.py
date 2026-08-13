@@ -91,7 +91,8 @@ def post_recording(
     *,
     consent_id: str,
     anon_id: str = ANON_A,
-    expected_number: int = 42,
+    # Montant valide : l'unite de compte est de 5 F, 42 n'a pas de forme dite.
+    expected_number: int = 40,
     expected_prompt: str | None = None,
     grammar_version: str | None = None,
     audio: bytes | None = None,
@@ -104,7 +105,7 @@ def post_recording(
         "consent_id": consent_id,
         "anon_id": anon_id,
         "expected_number": str(expected_number),
-        "expected_prompt": expected_prompt or hausa_numbers.generate(expected_number),
+        "expected_prompt": expected_prompt or hausa_numbers.format_money(expected_number),
         "grammar_version": grammar_version or hausa_numbers.load_lexicon().grammar_version,
     }
     if region is not None:
@@ -159,8 +160,8 @@ def test_valid_upload_normalizes_audio_and_persists_safe_metadata(
         "created_at",
     }
     assert receipt["status"] == "pending"
-    assert receipt["expected_number"] == 42
-    assert receipt["expected_prompt"] == hausa_numbers.generate(42)
+    assert receipt["expected_number"] == 40
+    assert receipt["expected_prompt"] == hausa_numbers.format_money(40)
     assert ANON_A not in response.text
     assert consent_id not in response.text
     assert "audio_ref" not in response.text

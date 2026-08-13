@@ -53,7 +53,9 @@ def test_render_spoken_differs_from_written_only_when_needed():
         with_thousand
     )
 
-    without = hausa_numbers.parse_expression("ɗari uku da hamsin sau biyu")
+    # Montant restant sous le millier : sa forme ecrite ne contient pas
+    # `jikka`, donc rien a substituer a la prononciation.
+    without = hausa_numbers.parse_expression("ashirin da biyar sau biyu")
     assert hausa_numbers.render_spoken(without) == hausa_numbers.render_expression(without)
 
 

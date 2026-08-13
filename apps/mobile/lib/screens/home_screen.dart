@@ -16,6 +16,12 @@ class HomeScreen extends StatelessWidget {
         automaticallyImplyLeading: false,
         actions: <Widget>[
           IconButton(
+            key: const Key('open-settings-button'),
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: 'Paramètres',
+            onPressed: () => Navigator.of(context).pushNamed(AppRoutes.settings),
+          ),
+          IconButton(
             key: const Key('open-privacy-button'),
             onPressed: () => Navigator.of(context).pushNamed(AppRoutes.privacy),
             tooltip: 'Confidentialité',

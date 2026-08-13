@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hausa_mobile/features/contribution/application/consent_controller.dart';
+import 'package:hausa_mobile/config/thousand_naming.dart';
 import 'package:hausa_mobile/models/recognition_result.dart';
 import 'package:hausa_mobile/network/api_client.dart';
 import 'package:hausa_mobile/recording/audio_recording_models.dart';
@@ -50,10 +51,18 @@ abstract interface class RecognitionRepository {
 }
 
 class DioRecognitionRepository implements RecognitionRepository {
-  const DioRecognitionRepository(this._dio, {this.consentId = ''});
+  const DioRecognitionRepository(
+    this._dio, {
+    this.consentId = '',
+    this.thousandNaming = defaultThousandNaming,
+  });
 
   final Dio _dio;
   final String consentId;
+
+  /// Appellation du millier à **prononcer**. N'influence jamais le calcul :
+  /// `jika` et `dubu` restent compris tous les deux à l'écoute.
+  final ThousandNaming thousandNaming;
 
   @override
   Future<RecognitionResult> recognize({
@@ -71,6 +80,7 @@ class DioRecognitionRepository implements RecognitionRepository {
         'audio': audio,
         'anon_id': anonId,
         'consent_id': consentId,
+        'thousand_naming': thousandNaming.wireValue,
       });
       final Response<dynamic> response = await _dio.post<dynamic>(
         '/recognize',
@@ -108,6 +118,7 @@ final recognitionRepositoryProvider = Provider<RecognitionRepository>((ref) {
   return DioRecognitionRepository(
     ref.watch(dioProvider),
     consentId: ref.watch(consentStatusProvider).acceptance?.id ?? '',
+    thousandNaming: ref.watch(thousandNamingProvider),
   );
 });
 

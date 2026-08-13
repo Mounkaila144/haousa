@@ -104,7 +104,13 @@ class _ConfirmationScreenState extends ConsumerState<ConfirmationScreen> {
     final int? mainNumber = result.recognizedNumber;
     if (mainNumber != null && result.hausaText.trim().isNotEmpty) {
       seen.add(mainNumber);
-      list.add(_Candidate(number: mainNumber, hausaText: result.hausaText));
+      list.add(
+        _Candidate(
+          number: mainNumber,
+          hausaText: result.hausaText,
+          spokenText: result.spokenText,
+        ),
+      );
     }
     for (final RecognitionAlternative alternative in result.alternatives) {
       final int? number = alternative.number;
@@ -114,7 +120,13 @@ class _ConfirmationScreenState extends ConsumerState<ConfirmationScreen> {
       if (!seen.add(number)) {
         continue;
       }
-      list.add(_Candidate(number: number, hausaText: alternative.hausaText));
+      list.add(
+        _Candidate(
+          number: number,
+          hausaText: alternative.hausaText,
+          spokenText: alternative.spokenText,
+        ),
+      );
     }
     return list;
   }
@@ -137,6 +149,7 @@ class _ConfirmationScreenState extends ConsumerState<ConfirmationScreen> {
         recognition: widget.result,
         number: candidate.number,
         hausaText: candidate.hausaText,
+        spokenText: candidate.spokenText,
       ),
     );
     if (mounted) {
@@ -329,7 +342,13 @@ class _ConfirmationScreenState extends ConsumerState<ConfirmationScreen> {
 }
 
 class _Candidate {
-  const _Candidate({required this.number, required this.hausaText});
+  const _Candidate({
+    required this.number,
+    required this.hausaText,
+    this.spokenText = '',
+  });
+
+  final String spokenText;
 
   final int number;
   final String hausaText;

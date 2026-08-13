@@ -66,6 +66,9 @@ void main() {
     );
     expect(fields['anon_id'], '00000000-0000-4000-8000-0000000000aa');
     expect(fields['consent_id'], '11111111-1111-4111-8111-111111111111');
+    // La preference d'appellation du millier voyage avec la requete : c'est le
+    // serveur qui rend `jikka` ou `dubu`, le mobile ne recompose rien.
+    expect(fields['thousand_naming'], 'jika');
     expect(body.files.single.key, 'audio');
     expect(body.files.single.value.filename, 'take.wav');
     expect(body.files.single.value.contentType.toString(), 'audio/wav');

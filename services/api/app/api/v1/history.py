@@ -42,7 +42,7 @@ async def history(
                 row.expression["hausa_text"]
                 if row.expression
                 else (
-                    hausa_numbers.generate(row.recognized_number)
+                    hausa_numbers.format_money(row.recognized_number)
                     if row.recognized_number is not None
                     else ""
                 )

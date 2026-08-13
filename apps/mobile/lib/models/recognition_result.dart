@@ -12,14 +12,17 @@ class RecognitionAlternative {
     required this.number,
     required this.hausaText,
     required this.score,
+    this.spokenText = '',
   });
 
   factory RecognitionAlternative.fromLiveJson(Map<String, dynamic> json) {
     final Object? number = json['number'];
     final Object? hausaText = json['hausa_text'];
+    final Object? spokenText = json['spoken_text'];
     final Object? score = json['score'];
     if ((number != null && number is! num) ||
         hausaText is! String ||
+        (spokenText != null && spokenText is! String) ||
         score is! num ||
         score < 0 ||
         score > 1) {
@@ -28,12 +31,16 @@ class RecognitionAlternative {
     return RecognitionAlternative(
       number: (number as num?)?.toInt(),
       hausaText: hausaText,
+      spokenText: spokenText as String? ?? '',
       score: score.toDouble(),
     );
   }
 
   final int? number;
   final String hausaText;
+
+  /// Forme à **prononcer**, vide si elle coïncide avec [hausaText].
+  final String spokenText;
   final double score;
 }
 
@@ -161,6 +168,7 @@ class RecognitionResult {
     required this.decision,
     required this.modelVersion,
     required this.grammarVersion,
+    this.spokenText = '',
     this.alternatives = const <RecognitionAlternative>[],
     this.expression,
     this.latencyTotalMs = 0,
@@ -176,6 +184,7 @@ class RecognitionResult {
       id: json['id'] as String? ?? '',
       recognizedNumber: (json['recognized_number'] as num?)?.toInt(),
       hausaText: json['hausa_text'] as String? ?? '',
+      spokenText: json['spoken_text'] as String? ?? '',
       normalizedText: json['normalized_text'] as String? ?? '',
       confidence: (json['confidence'] as num?)?.toDouble() ?? 0,
       decision: _historyDecision(json['decision']),
@@ -205,6 +214,7 @@ class RecognitionResult {
     final Object? id = json['id'];
     final Object? number = json['recognized_number'];
     final Object? hausaText = json['hausa_text'];
+    final Object? spokenText = json['spoken_text'];
     final Object? normalizedText = json['normalized_text'];
     final Object? confidence = json['confidence'];
     final Object? decisionRaw = json['decision'];
@@ -223,6 +233,7 @@ class RecognitionResult {
         id.isEmpty ||
         (number != null && number is! num) ||
         hausaText is! String ||
+        (spokenText != null && spokenText is! String) ||
         normalizedText is! String ||
         confidence is! num ||
         confidence < 0 ||
@@ -267,6 +278,7 @@ class RecognitionResult {
       id: id,
       recognizedNumber: (number as num?)?.toInt(),
       hausaText: hausaText,
+      spokenText: spokenText as String? ?? '',
       normalizedText: normalizedText,
       confidence: confidence.toDouble(),
       decision: decision,
@@ -282,6 +294,14 @@ class RecognitionResult {
   final String id;
   final int? recognizedNumber;
   final String hausaText;
+
+  /// Forme à **prononcer** de [hausaText], vide si elle lui est identique.
+  ///
+  /// Concerne l'énoncé « nombre seul », qui n'a pas d'[expression] : `jikka`
+  /// s'écrit ainsi mais se lit `jikk ka`, la synthèse embarquée lisant des
+  /// caractères et perdant la gémination. Valeur issue du lexique serveur,
+  /// jamais recomposée ici.
+  final String spokenText;
   final String normalizedText;
   final double confidence;
   final Decision decision;

@@ -231,7 +231,8 @@ class TestConfidencePolicyIntegration:
         response = post_audio()
 
         assert response.status_code == 200
-        assert response.json()["recognized_number"] == 100
+        # `ɗari` vaut 500 F dans la calculatrice monetaire.
+        assert response.json()["recognized_number"] == 500
         assert response.json()["decision"] == "accept"
         assert response.json()["confidence"] >= Settings().POLICY_ACCEPT_THRESHOLD
 
@@ -251,7 +252,7 @@ class TestConfidencePolicyIntegration:
         assert response.status_code == 200
         body = response.json()
         assert body["decision"] == "confirm"
-        assert [candidate["number"] for candidate in body["alternatives"]] == [100, 90]
+        assert [candidate["number"] for candidate in body["alternatives"]] == [500, 450]
         assert [candidate["score"] for candidate in body["alternatives"]] == [0.80, 0.75]
 
     def test_non_numeric_speech_never_invents_number(self, mock_recognizer: MockRecognizer) -> None:

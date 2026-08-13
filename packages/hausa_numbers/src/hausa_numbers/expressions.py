@@ -4,11 +4,26 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .exceptions import DomainError, ExpressionParseError, ParseError
-from .generator import MAX_VALUE, generate
+from .exceptions import DomainError, ExpressionParseError
+from .generator import generate
 from .loader import load_lexicon
+from .money import (
+    DEFAULT_THOUSAND_NAMING,
+    MAX_MONEY_CFA,
+    UNIT_CFA,
+    ThousandNaming,
+    format_money,
+    parse_money,
+    parse_scalar,
+)
 from .normalizer import normalize_hausa_text
-from .parser import hausa_words_to_number
+
+#: Opérateurs dont l'opérande droit est un **multiplicateur**, pas un montant.
+#:
+#: `dari sau dari` vaut 500 F × 100, jamais 500 × 500 : à droite de `sau` le
+#: nombre compte des fois, pas des francs (cf. §9). Additionner ou soustraire,
+#: à l'inverse, met en jeu deux montants.
+_SCALAR_RIGHT_OPERATORS = frozenset({"multiply", "divide"})
 
 HAUSA_OPERATORS = {
     "add": ("a ƙara", "ƙara", "a kara", "kara"),
@@ -103,11 +118,15 @@ def parse_hausa_operation(text: str) -> ParsedOperation:
     if end == len(tokens):
         raise ExpressionParseError("Lambar dama ta bace.", code="MISSING_RIGHT_OPERAND")
     left_text, right_text = " ".join(tokens[:start]), " ".join(tokens[end:])
-    try:
-        left = hausa_words_to_number(left_text)
-        right = hausa_words_to_number(right_text)
-    except ParseError as exc:
-        raise ExpressionParseError("Ba a gane lambar ba.", code="INVALID_OPERAND") from exc
+    # L'opérande gauche est toujours un montant. Le droit dépend de l'opérateur
+    # : un multiplicateur pour `sau`/`raba`, un montant pour `ƙara`/`hidda`.
+    left = parse_money(left_text)
+    if name in _SCALAR_RIGHT_OPERATORS:
+        right = parse_scalar(right_text)
+    else:
+        right = parse_money(right_text)
+    if left is None or right is None:
+        raise ExpressionParseError("Ba a gane lambar ba.", code="INVALID_OPERAND")
     return ParsedOperation(text, normalized, left_text, left, name, right_text, right)
 
 
@@ -142,8 +161,16 @@ def evaluate(expression: Expression) -> ExpressionResult:
         raise DomainError("Ba a gane alamar lissafi ba.", code="UNKNOWN_OPERATOR")
     if value < 0:
         raise DomainError("Sakamako mara kyau baya cikin iyaka.", code="NEGATIVE_RESULT")
-    if value > MAX_VALUE:
+    if value > MAX_MONEY_CFA:
         raise DomainError("Sakamako ya wuce iyaka.", code="RESULT_OUT_OF_RANGE")
+    # L'unité de compte est de 5 F : diviser peut tomber entre deux montants
+    # (115 F ÷ 5 = 23 F, qui ne se dit pas). On refuse alors explicitement —
+    # arrondir en silence ferait rendre la monnaie de travers (§29/§30).
+    if (value % UNIT_CFA) or (remainder % UNIT_CFA):
+        raise DomainError(
+            "Sakamako ba shi da siga a kuɗi.",
+            code="RESULT_NOT_EXPRESSIBLE",
+        )
     return ExpressionResult(expression, value, remainder)
 
 
@@ -152,9 +179,21 @@ def evaluate_text(text: str) -> ExpressionResult | None:
     return evaluate(expression) if expression is not None else None
 
 
-def render_expression(expression: Expression) -> str:
-    left = generate(expression.left)
-    right = generate(expression.right)
+def render_expression(
+    expression: Expression,
+    naming: ThousandNaming = DEFAULT_THOUSAND_NAMING,
+) -> str:
+    """Relit l'opération entendue, chaque opérande dans **sa** lecture.
+
+    Le multiplicateur de `sau` se relit comme un nombre (`ɗari` = 100), le
+    reste comme des montants (`ɗari` = 500 F). Les rendre tous les deux en
+    montants ferait relire « dari sau dari » comme 500 F × 500 F.
+    """
+    left = format_money(expression.left, naming)
+    if expression.operator_name in _SCALAR_RIGHT_OPERATORS:
+        right = generate(expression.right)
+    else:
+        right = format_money(expression.right, naming)
     return f"{left} {_CANONICAL[expression.symbol]} {right}"
 
 
@@ -179,15 +218,27 @@ def to_spoken(text: str) -> str:
     return " ".join(forms.get(word, word) for word in text.split())
 
 
-def render_spoken(expression: Expression) -> str:
+def render_spoken(
+    expression: Expression,
+    naming: ThousandNaming = DEFAULT_THOUSAND_NAMING,
+) -> str:
     """Forme **prononçable** de l'opération (cf. ``to_spoken``)."""
-    return to_spoken(render_expression(expression))
+    return to_spoken(render_expression(expression, naming))
 
 
-def render_result(result: ExpressionResult) -> str:
+def render_result(
+    result: ExpressionResult,
+    naming: ThousandNaming = DEFAULT_THOUSAND_NAMING,
+) -> str:
+    """Résultat en francs CFA, dit avec l'appellation choisie du millier.
+
+    Le reste d'une division est lui aussi un montant : diviser 1 500 F en deux
+    laisse 750 F, pas « 150 ».
+    """
+    value = format_money(result.value, naming)
     if result.remainder:
-        return f"{generate(result.value)} saura {generate(result.remainder)}"
-    return generate(result.value)
+        return f"{value} saura {format_money(result.remainder, naming)}"
+    return value
 
 
 def supported_operators() -> dict[str, str]:

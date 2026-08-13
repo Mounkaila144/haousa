@@ -185,11 +185,12 @@ def test_valid_expression_is_decoded_verbatim(constraint, tokenizer, grammar, sp
 @pytest.mark.parametrize(
     ("spoken", "expected"),
     [
-        ("jika biyar a hidda goma", 4990),
-        ("jika huɗu a ƙara ɗari", 4100),
-        ("jika goma a ƙara ɗari", 10100),
-        ("jika goma sha ɗaya a hidda goma", 10990),
-        ("jika uku da biyar", 3005),
+        # Montants en francs CFA : `goma` = 50 F, `ɗari` = 500 F, `jika` = 1 000 F.
+        ("jika biyar a hidda goma", 4950),
+        ("jika huɗu a ƙara ɗari", 4500),
+        ("jika goma a ƙara ɗari", 10500),
+        ("jika goma sha ɗaya a hidda goma", 10950),
+        ("jika uku da biyar", 3025),
     ],
 )
 def test_thousand_is_jikka(constraint, tokenizer, spoken, expected):
@@ -208,7 +209,7 @@ def test_thousand_is_jikka(constraint, tokenizer, spoken, expected):
     value = (
         hausa_numbers.evaluate(expression).value
         if expression is not None
-        else hausa_numbers.parse(normalized)
+        else hausa_numbers.parse_money(normalized)
     )
     assert value == expected
 

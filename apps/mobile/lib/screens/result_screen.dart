@@ -1,12 +1,24 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hausa_mobile/feedback/feedback_models.dart';
 import 'package:hausa_mobile/models/recognition_result.dart';
 import 'package:hausa_mobile/navigation/app_routes.dart';
+import 'package:hausa_mobile/speech/hausa_speaker.dart';
+import 'package:hausa_mobile/speech/voice_bank.dart';
 import 'package:hausa_mobile/widgets/brand_app_bar.dart';
 import 'package:hausa_mobile/widgets/brand_footer.dart';
 import 'package:hausa_mobile/widgets/hausa_number_display.dart';
 
-class ResultScreen extends StatelessWidget {
+/// Écran Résultat d'un énoncé « nombre seul ».
+///
+/// Le nombre reconnu est **prononcé** à l'affichage : l'utilisateur cible ne
+/// lit pas, et la forme hausa n'est jamais écrite à l'écran (cf.
+/// `HausaNumberDisplay`) — sans restitution vocale, cet écran ne lui rendrait
+/// rien. La forme dite vient du serveur ([RecognitionResult.spokenText]) et
+/// n'est jamais recomposée ici : `jikka` s'écrit ainsi mais se dit `jikk ka`.
+class ResultScreen extends ConsumerStatefulWidget {
   const ResultScreen({super.key, required this.result, this.confirmed});
 
   /// Reconnaissance d'origine (décision serveur inchangée).
@@ -16,12 +28,40 @@ class ResultScreen extends StatelessWidget {
   /// proposition principale (alternative choisie). `null` sur le chemin `accept`.
   final ConfirmedResult? confirmed;
 
-  int? get _number => confirmed?.number ?? result.recognizedNumber;
+  @override
+  ConsumerState<ResultScreen> createState() => _ResultScreenState();
+}
 
-  String get _hausaText => confirmed?.hausaText ?? result.hausaText;
+class _ResultScreenState extends ConsumerState<ResultScreen> {
+  bool _spoken = false;
+
+  int? get _number =>
+      widget.confirmed?.number ?? widget.result.recognizedNumber;
+
+  String get _hausaText =>
+      widget.confirmed?.hausaText ?? widget.result.hausaText;
+
+  String get _spokenText =>
+      widget.confirmed?.spokenText ?? widget.result.spokenText;
 
   @override
   Widget build(BuildContext context) {
+    // Dit une seule fois : contrairement au calcul, l'écran reste affiché et
+    // l'utilisateur peut relancer un enregistrement quand il veut.
+    final HausaSpeaker? speaker = ref.watch(hausaSpeakerProvider);
+    if (!_spoken && speaker != null && _hausaText.trim().isNotEmpty) {
+      _spoken = true;
+      final List<VoiceSegment> utterance = speaker.preferred(
+        _hausaText,
+        _spokenText,
+      );
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          unawaited(speaker.speak(utterance));
+        }
+      });
+    }
+
     return Scaffold(
       key: const Key('result-screen'),
       appBar: const BrandAppBar(title: 'Résultat'),
@@ -68,7 +108,7 @@ class ResultScreen extends StatelessWidget {
                 key: const Key('open-correction-button'),
                 onPressed: () => Navigator.of(
                   context,
-                ).pushNamed(AppRoutes.correction, arguments: result),
+                ).pushNamed(AppRoutes.correction, arguments: widget.result),
                 icon: const Icon(Icons.edit_outlined),
                 label: const Text('Corriger'),
               ),

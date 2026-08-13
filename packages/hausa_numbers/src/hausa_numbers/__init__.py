@@ -46,6 +46,19 @@ from .grammar import (
     load_grammar,
 )
 from .loader import Lexicon, Operator, load_lexicon
+from .money import (
+    DEFAULT_THOUSAND_NAMING,
+    MAX_MONEY_CFA,
+    MIN_MONEY_CFA,
+    THOUSAND_CFA,
+    THOUSAND_NAMINGS,
+    UNIT_CFA,
+    ThousandNaming,
+    format_money,
+    parse_money,
+    parse_scalar,
+    thousand_word,
+)
 from .normalizer import (
     HAUSA_NORMALIZATION_ALIASES,
     NormalizationResult,
@@ -63,6 +76,17 @@ __all__ = [
     "Lexicon",
     "Operator",
     "load_lexicon",
+    "DEFAULT_THOUSAND_NAMING",
+    "MAX_MONEY_CFA",
+    "MIN_MONEY_CFA",
+    "THOUSAND_CFA",
+    "THOUSAND_NAMINGS",
+    "UNIT_CFA",
+    "ThousandNaming",
+    "format_money",
+    "parse_money",
+    "parse_scalar",
+    "thousand_word",
     "generate",
     "generate_combined",
     "number_to_hausa",

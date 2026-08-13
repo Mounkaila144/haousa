@@ -44,7 +44,8 @@ def numeric_candidates_from_asr(asr: AsrResult) -> list[NumericCandidate]:
     by_number: dict[int, NumericCandidate] = {}
     for text, score in transcriptions:
         normalized = hausa_numbers.normalize(text)
-        number = hausa_numbers.parse(normalized)
+        # Un nombre entendu seul est un MONTANT : `ɗari` vaut 500 F, pas 100.
+        number = hausa_numbers.parse_money(normalized)
         if number is None:
             continue
         candidate = NumericCandidate(number=number, text=normalized, score=_clamp(score))
@@ -193,8 +194,8 @@ def composite_confidence(
     des epics 1–5 est strictement inchangé.
     """
 
-    parsed = hausa_numbers.parse_detailed(normalized_text)
-    grammatical = (number is not None and parsed.accepted) or expression_recognized
+    money_recognized = hausa_numbers.parse_money(normalized_text) is not None
+    grammatical = (number is not None and money_recognized) or expression_recognized
     signals = {
         "acoustic": _clamp(
             max([asr.acoustic_score, *(candidate.score for candidate in asr.candidates)])

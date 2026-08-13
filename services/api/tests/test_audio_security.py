@@ -70,7 +70,7 @@ class SpyRecognizer:
     def transcribe(self, audio: AudioInput) -> AsrResult:
         self.received = audio
         return AsrResult(
-            text=hausa_numbers.generate(42),
+            text=hausa_numbers.format_money(40),
             acoustic_score=1.0,
             candidates=[],
             latency_ms=1,
@@ -104,7 +104,8 @@ def test_valid_wav_is_normalized_before_asr(spy_recognizer: SpyRecognizer) -> No
     response = post_audio(make_wav(channels=2, sample_rate=44_100))
 
     assert response.status_code == 200
-    assert response.json()["recognized_number"] == 42
+    # 40 F : `takwas` (8 unites de 5 F), le montant dit dans le WAV de test.
+    assert response.json()["recognized_number"] == 40
     assert spy_recognizer.received is not None
     assert spy_recognizer.received.format == "pcm_s16le"
     assert len(spy_recognizer.received.data) == (

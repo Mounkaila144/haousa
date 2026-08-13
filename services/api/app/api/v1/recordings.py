@@ -117,7 +117,10 @@ async def create_recording(
         if grammar_version != lexicon.grammar_version:
             raise RecordingMetadataError
         try:
-            canonical_prompt = hausa_numbers.generate(expected_number)
+            # Le corpus collecte des MONTANTS : le texte attendu doit se dire
+            # comme dans la calculatrice, sans quoi les enregistrements ne
+            # correspondraient pas à ce que le moteur analyse.
+            canonical_prompt = hausa_numbers.format_money(expected_number)
         except (
             hausa_numbers.OutOfRangeError,
             hausa_numbers.UnresolvedFormError,
