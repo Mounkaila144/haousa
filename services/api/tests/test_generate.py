@@ -10,19 +10,20 @@ from __future__ import annotations
 
 from app.main import app
 from fastapi.testclient import TestClient
-from hausa_numbers import MAX_VALUE, generate, load_lexicon
+from hausa_numbers import MAX_MONEY_CFA, format_money, load_lexicon
 
 client = TestClient(app)
 
 
 def test_generate_returns_canonical_form_from_engine() -> None:
+    # 235 F : montant valide (multiple de l'unite de compte de 5 F).
     resp = client.get("/api/v1/grammar/generate/235")
     assert resp.status_code == 200
     body = resp.json()
 
     assert body["number"] == 235
     # Forme issue exclusivement du moteur, jamais recalculée dans la route.
-    assert body["hausa_text"] == generate(235)
+    assert body["hausa_text"] == format_money(235)
     # Version issue du lexique (source unique de vérité).
     assert body["grammar_version"] == load_lexicon().grammar_version
 
@@ -30,11 +31,11 @@ def test_generate_returns_canonical_form_from_engine() -> None:
 def test_generate_accepts_lower_and_upper_bounds() -> None:
     lower = client.get("/api/v1/grammar/generate/0")
     assert lower.status_code == 200
-    assert lower.json()["hausa_text"] == generate(0)
+    assert lower.json()["hausa_text"] == format_money(0)
 
-    upper = client.get(f"/api/v1/grammar/generate/{MAX_VALUE}")
+    upper = client.get(f"/api/v1/grammar/generate/{MAX_MONEY_CFA}")
     assert upper.status_code == 200
-    assert upper.json()["hausa_text"] == generate(MAX_VALUE)
+    assert upper.json()["hausa_text"] == format_money(MAX_MONEY_CFA)
 
 
 def test_generate_rejects_negative_number() -> None:
@@ -43,11 +44,11 @@ def test_generate_rejects_negative_number() -> None:
     error = resp.json()["error"]
     assert error["code"] == "OUT_OF_RANGE"
     # La borne annoncée provient du moteur (source unique), pas d'une copie.
-    assert "99 999 999 999" in error["message"]
+    assert "999 995" in error["message"]
 
 
 def test_generate_rejects_above_maximum() -> None:
-    resp = client.get(f"/api/v1/grammar/generate/{MAX_VALUE + 1}")
+    resp = client.get(f"/api/v1/grammar/generate/{MAX_MONEY_CFA + 1}")
     assert resp.status_code == 400
     assert resp.json()["error"]["code"] == "OUT_OF_RANGE"
 

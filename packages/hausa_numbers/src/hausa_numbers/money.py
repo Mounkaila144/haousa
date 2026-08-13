@@ -41,7 +41,7 @@ from __future__ import annotations
 
 from typing import Final, Literal
 
-from .exceptions import OutOfRangeError, ParseError
+from .exceptions import OutOfRangeError, ParseError, UnresolvedFormError
 from .generator import generate
 from .loader import load_lexicon
 from .normalizer import normalize_hausa_text
@@ -54,10 +54,13 @@ UNIT_CFA: Final = 5
 #: jamais deux constantes concurrentes, sans quoi les synonymes divergeraient.
 THOUSAND_CFA: Final = 1_000
 
-#: Plus grand montant exprimable : le multiplicateur du millier reste un
+#: Plus grand montant exprimable : 999 995 F.
+#:
+#: Deux bornes se combinent. Le multiplicateur du millier doit rester un
 #: scalaire inférieur à 1 000, sans quoi la forme produite réemploierait le mot
-#: du millier à l'intérieur de son propre multiplicateur.
-MAX_MONEY_CFA: Final = 999 * THOUSAND_CFA + (999 * UNIT_CFA)
+#: du millier à l'intérieur de son propre multiplicateur (`jikka jikka ɗaya…`).
+#: Et le reste doit rester sous 1 000 F, donc au plus 199 × 5 F.
+MAX_MONEY_CFA: Final = 999 * THOUSAND_CFA + (THOUSAND_CFA - UNIT_CFA)
 
 MIN_MONEY_CFA: Final = 0
 
@@ -194,7 +197,7 @@ def format_money(
     if amount % UNIT_CFA:
         # L'unité de compte est de 5 F : un montant intermédiaire n'a pas de
         # forme dite. Le taire vaudrait mieux que d'arrondir en silence.
-        raise OutOfRangeError(
+        raise UnresolvedFormError(
             f"Montant non exprimable, l'unité est de {UNIT_CFA} F : {amount}.",
             code="UNRESOLVED_FORM",
         )

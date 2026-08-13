@@ -14,11 +14,11 @@ from __future__ import annotations
 from fastapi import APIRouter, Request, status
 from fastapi.responses import JSONResponse
 from hausa_numbers import (
-    MAX_VALUE,
+    MAX_MONEY_CFA,
     Lexicon,
     OutOfRangeError,
     UnresolvedFormError,
-    generate,
+    format_money,
     load_lexicon,
 )
 from pydantic import BaseModel
@@ -105,15 +105,19 @@ def grammar_generate(
 
     request_id = request_id_from(request)
     try:
-        hausa_text = generate(number)
+        # La calculatrice compte de l'ARGENT : l'ecran de correction doit
+        # recevoir la meme forme que celle prononcee ailleurs, sans quoi
+        # corriger un montant afficherait sa lecture numerique (`ɗari` = 100)
+        # la ou tout le reste de l'application entend 500 F.
+        hausa_text = format_money(number)
     except OutOfRangeError:
         return api_error_response(
             status_code=status.HTTP_400_BAD_REQUEST,
             code="OUT_OF_RANGE",
             # Borne issue du moteur (source unique), jamais recopiée en dur.
-            message=f"Nombre hors plage. Utilisez un nombre entre 0 et {MAX_VALUE:,}.".replace(
-                ",", " "
-            ),
+            message=(
+                f"Montant hors plage. Utilisez un montant entre 0 et {MAX_MONEY_CFA:,} F."
+            ).replace(",", " "),
             request_id=request_id,
         )
     except UnresolvedFormError:

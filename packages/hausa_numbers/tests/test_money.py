@@ -12,8 +12,10 @@ from __future__ import annotations
 
 import pytest
 from hausa_numbers import (
+    UNIT_CFA,
     DomainError,
     OutOfRangeError,
+    UnresolvedFormError,
     evaluate,
     format_money,
     parse_expression,
@@ -241,8 +243,15 @@ def test_unparseable_amount_is_refused_never_guessed() -> None:
 
 
 def test_amount_off_the_five_franc_unit_has_no_spoken_form() -> None:
-    with pytest.raises(OutOfRangeError):
+    # `UnresolvedFormError` et non `OutOfRangeError` : 7 F est dans la plage,
+    # c'est sa FORME qui n'existe pas. L'API distingue les deux (422 vs 400).
+    with pytest.raises(UnresolvedFormError):
         format_money(7)
+
+
+def test_amount_beyond_the_range_is_out_of_range() -> None:
+    with pytest.raises(OutOfRangeError):
+        format_money(10_000_000)
 
 
 def test_negative_result_is_refused() -> None:
@@ -267,3 +276,17 @@ def test_division_that_lands_on_the_unit_is_allowed() -> None:
     expression = parse_expression("dari a raba chi sau biyar")
     assert expression is not None
     assert evaluate(expression).value == 100
+
+
+def test_the_largest_amount_never_nests_the_thousand_word() -> None:
+    """Régression : au-delà de la borne, la forme réemployait `jikka` en son
+    propre multiplicateur (`jikka jikka ɗaya…`), et n'était plus réanalysable.
+    """
+    from hausa_numbers import MAX_MONEY_CFA
+
+    rendered = format_money(MAX_MONEY_CFA)
+    assert rendered.split().count("jikka") == 1
+    assert parse_money(rendered) == MAX_MONEY_CFA
+
+    with pytest.raises(OutOfRangeError):
+        format_money(MAX_MONEY_CFA + UNIT_CFA)
