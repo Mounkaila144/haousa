@@ -1,4 +1,10 @@
-/// Moteur Piper/Sherpa-ONNX embarqué pour la voix hausa M3.
+/// Moteur Piper/Sherpa-ONNX embarqué pour la voix hausa.
+///
+/// Le modèle n'est PAS dans le dépôt : il est produit par la chaîne
+/// d'entraînement (`entrainement/tts_training/`) et déposé dans
+/// `assets/models/hausa_tts/`. Tant qu'il est absent, l'initialisation échoue
+/// proprement et l'application reste muette — c'est un état transitoire assumé,
+/// le temps que la voix soit entraînée.
 library;
 
 import 'dart:async';
@@ -14,8 +20,6 @@ import 'package:unorm_dart/unorm_dart.dart' as unorm;
 
 import 'package:hausa_mobile/speech/wav.dart';
 
-const String kHausaTtsVoice = 'M3';
-const int kExpectedM3SpeakerId = 1;
 const String kHausaTtsAssetRoot = 'assets/models/hausa_tts';
 
 class HausaTtsException implements Exception {
@@ -35,8 +39,17 @@ abstract interface class HausaTtsSynthesizer {
   Future<void> dispose();
 }
 
-/// Résout M3 depuis le JSON Piper. Il n'existe aucun locuteur de secours.
-int resolveM3SpeakerId(String configJson) {
+/// Locuteur à employer, lu dans le JSON Piper.
+///
+/// La voix est désormais **mono-locuteur** : elle est entraînée sur une seule
+/// personne, donc l'identifiant vaut 0 et il n'y a rien à choisir. L'ancienne
+/// version exigeait un locuteur `M3` à l'identifiant 1, hérité d'un modèle
+/// multi-locuteurs ; cette contrainte refuserait de charger la nouvelle voix.
+///
+/// Un modèle multi-locuteurs est refusé plutôt que deviné : sans consigne, rien
+/// ne dit laquelle des voix devrait parler, et en choisir une au hasard
+/// donnerait une voix différente à chaque révision du modèle.
+int resolveSpeakerId(String configJson) {
   final Object? decoded;
   try {
     decoded = jsonDecode(configJson);
@@ -49,40 +62,21 @@ int resolveM3SpeakerId(String configJson) {
       'La configuration Piper doit être un objet JSON.',
     );
   }
-  final Object? speakerMap = decoded['speaker_id_map'];
-  if (speakerMap is! Map<String, dynamic>) {
-    throw const HausaTtsException(
-      'SPEAKER_MAP_MISSING',
-      'Le champ speaker_id_map est absent de model.onnx.json.',
-    );
-  }
-  if (!speakerMap.containsKey(kHausaTtsVoice)) {
-    throw const HausaTtsException(
-      'M3_NOT_FOUND',
-      'La voix obligatoire M3 est absente de speaker_id_map. Aucune autre voix ne sera utilisée.',
-    );
-  }
-  final Object? rawId = speakerMap[kHausaTtsVoice];
-  if (rawId is! int) {
-    throw HausaTtsException(
-      'INVALID_M3_ID',
-      'L’identifiant de M3 doit être un entier, reçu : $rawId.',
-    );
-  }
   final Object? rawCount = decoded['num_speakers'];
-  if (rawCount is! int || rawId < 0 || rawId >= rawCount) {
+  if (rawCount is! int || rawCount < 1) {
     throw HausaTtsException(
-      'INVALID_M3_ID',
-      'L’identifiant M3=$rawId est hors de la plage des locuteurs.',
+      'INVALID_SPEAKER_COUNT',
+      'num_speakers doit être un entier positif, reçu : $rawCount.',
     );
   }
-  if (rawId != kExpectedM3SpeakerId) {
+  if (rawCount > 1) {
     throw HausaTtsException(
-      'M3_ID_MISMATCH',
-      'L’identifiant M3 détecté est $rawId ; la révision validée attend $kExpectedM3SpeakerId.',
+      'MULTI_SPEAKER_MODEL',
+      'Ce modèle porte $rawCount locuteurs ; la voix attendue est '
+          'mono-locuteur et aucun choix ne peut être fait à sa place.',
     );
   }
-  return rawId;
+  return 0;
 }
 
 /// Prétraitement prescrit par le modèle : minuscules, apostrophe ASCII et NFD.
@@ -137,13 +131,12 @@ class HausaTtsEngine implements HausaTtsSynthesizer {
     final String configJson = await _bundle.loadString(
       '$kHausaTtsAssetRoot/model.onnx.json',
     );
-    final int speakerId = resolveM3SpeakerId(configJson);
+    final int speakerId = resolveSpeakerId(configJson);
     final Set<String> supportedCharacters = _readSupportedCharacters(
       configJson,
     );
     if (kDebugMode) {
-      debugPrint('Voix sélectionnée : $kHausaTtsVoice');
-      debugPrint('Speaker ID détecté : $speakerId');
+      debugPrint('Locuteur : $speakerId (modèle mono-locuteur)');
     }
 
     final _InstalledTtsAssets assets = await _installAssets();

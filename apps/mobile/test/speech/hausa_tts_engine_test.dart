@@ -1,6 +1,3 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hausa_mobile/speech/hausa_tts_engine.dart';
@@ -13,66 +10,58 @@ class _UnusedBundle extends CachingAssetBundle {
 }
 
 void main() {
-  const String validConfig = '''
-  {
-    "num_speakers": 8,
-    "speaker_id_map": {"F2": 0, "M3": 1, "M2": 2}
-  }
-  ''';
-
-  group('sélection dynamique de M3', () {
-    test('l’asset livré contient réellement M3=1', () {
-      final String config = File(
-        'assets/models/hausa_tts/model.onnx.json',
-      ).readAsStringSync();
-      expect(resolveM3SpeakerId(config), 1);
+  group('résolution du locuteur', () {
+    // La voix est mono-locuteur : elle est entraînée sur une seule personne.
+    // L'ancienne contrainte — un locuteur `M3` à l'identifiant 1 — venait d'un
+    // modèle multi-locuteurs et refuserait de charger la nouvelle voix.
+    test('un modèle mono-locuteur donne l’identifiant 0', () {
+      expect(resolveSpeakerId('{"num_speakers": 1}'), 0);
     });
 
-    test('lit M3 depuis speaker_id_map', () {
-      expect(resolveM3SpeakerId(validConfig), 1);
-    });
-
-    test('refuse clairement une configuration sans M3', () {
+    test('refuse un modèle multi-locuteurs plutôt que d’en choisir un', () {
+      // Deviner reviendrait à changer de voix à chaque révision du modèle,
+      // sans que rien ne le signale.
       expect(
-        () => resolveM3SpeakerId(
-          '{"num_speakers": 8, "speaker_id_map": {"M2": 2}}',
-        ),
-        throwsA(
-          isA<HausaTtsException>()
-              .having((e) => e.code, 'code', 'M3_NOT_FOUND')
-              .having((e) => e.message, 'message', contains('M3')),
-        ),
-      );
-    });
-
-    test('refuse un changement silencieux de l’identifiant attendu', () {
-      expect(
-        () => resolveM3SpeakerId(
-          '{"num_speakers": 8, "speaker_id_map": {"M3": 4}}',
+        () => resolveSpeakerId(
+          '{"num_speakers": 8, "speaker_id_map": {"F2": 0, "M3": 1}}',
         ),
         throwsA(
           isA<HausaTtsException>().having(
             (e) => e.code,
             'code',
-            'M3_ID_MISMATCH',
+            'MULTI_SPEAKER_MODEL',
           ),
         ),
       );
     });
-  });
 
-  test('le manifeste impose le frontend graphémique sans phonémiseur', () {
-    final Map<String, dynamic> manifest =
-        jsonDecode(
-              File(
-                'assets/models/hausa_tts/asset_manifest.json',
-              ).readAsStringSync(),
-            )
-            as Map<String, dynamic>;
-    expect(manifest['runtime'], 'sherpa_onnx');
-    expect(manifest['frontend'], 'characters');
-    expect(manifest['phonemizer_resources'], isEmpty);
-    expect(manifest['voice'], 'M3');
+    test('refuse un décompte de locuteurs absent ou absurde', () {
+      for (final String config in <String>['{}', '{"num_speakers": 0}']) {
+        expect(
+          () => resolveSpeakerId(config),
+          throwsA(
+            isA<HausaTtsException>().having(
+              (e) => e.code,
+              'code',
+              'INVALID_SPEAKER_COUNT',
+            ),
+          ),
+        );
+      }
+    });
+
+    test('refuse un JSON invalide', () {
+      expect(
+        () => resolveSpeakerId('pas du json'),
+        throwsA(
+          isA<HausaTtsException>().having(
+            (e) => e.code,
+            'code',
+            'INVALID_CONFIG',
+          ),
+        ),
+      );
+    });
   });
 
   test('normalise en minuscules, apostrophe ASCII et Unicode NFD', () {

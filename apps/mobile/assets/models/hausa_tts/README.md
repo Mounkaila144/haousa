@@ -1,23 +1,35 @@
-# Modèle TTS hausa embarqué
+# Voix hausa (Piper / sherpa-onnx)
 
-- Source : `adab-tech/murya-piper-hausa-tts`
-- Révision figée : `7eccd91ec0dc154c789b778c924b89f59a0dbccb`
-- Licence du modèle : MIT
-- Voix obligatoire : `M3` (résolue dynamiquement dans `speaker_id_map`)
-- Runtime mobile : `sherpa_onnx`
+**Ce dossier est volontairement vide.** Le modèle n'est pas dans le dépôt : il
+est produit par la chaîne d'entraînement et déposé ici.
 
-Le modèle Piper a été entraîné avec `phoneme_type: text` (graphèmes hausa). Il
-n'utilise donc ni eSpeak, ni lexique phonétique. `tokens.txt` est dérivé de
-`phoneme_id_map` et l'ONNX reçoit le frontend Sherpa `characters`. Embarquer
-`espeak-ng-data` serait à la fois inutile et incorrect pour ce modèle ; eSpeak
-ne fournit par ailleurs pas de voix hausa utilisée par cet entraînement.
+Tant qu'il manque, `HausaTtsEngine` échoue proprement à l'initialisation et
+l'application reste muette. C'est un état transitoire assumé, le temps que la
+voix soit entraînée sur les enregistrements du locuteur.
 
-`model.onnx.json` reste le fichier amont intact et constitue la source de vérité
-pour les locuteurs et les jetons. `asset_manifest.json` permet à l'application
-de ne recopier le modèle de 73 Mio dans son stockage privé que lorsqu'il change.
+## Ce qu'il faut déposer
 
-La préparation est reproductible depuis `apps/mobile/` :
-
-```sh
-uv run --with onnx==1.17.0 python tool/prepare_hausa_tts_model.py
+```text
+model.onnx           le réseau exporté puis annoté pour sherpa-onnx
+model.onnx.json      sa configuration Piper
+tokens.txt           la table de symboles
+asset_manifest.json  tailles attendues, contrôlées à l'installation
 ```
+
+`model.onnx` est ignoré par git (plusieurs dizaines de Mo) ; les trois autres
+sont versionnés.
+
+## Comment l'obtenir
+
+Voir `entrainement/tts_training/README.md`. En résumé : préparer le corpus,
+entraîner sur Colab, exporter en ONNX, puis convertir avec
+`convert_tts_for_sherpa.py`.
+
+## Contraintes que le moteur vérifie au chargement
+
+- `num_speakers` vaut **1** — la voix est mono-locuteur. Un modèle
+  multi-locuteurs est refusé plutôt que d'en choisir un au hasard.
+- `phoneme_type` vaut **`text`** : le texte est lu en caractères, sans
+  phonémiseur. espeak-ng ne connaît pas le hausa.
+- Chaque caractère envoyé à la synthèse doit exister dans `phoneme_id_map`,
+  sinon il serait ignoré en silence.
