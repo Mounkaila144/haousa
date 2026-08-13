@@ -68,3 +68,7 @@ entrainement/*.apk
 # Studio vocal : artefacts de build Flutter du recorder
 entrainement/tts_recorder/build/
 entrainement/tts_recorder/.dart_tool/
+
+# Corpus TTS prepare et archive Colab : regenerables, volumineux
+dataset/tts/corpus/
+dataset/tts/hausa_tts.zip
