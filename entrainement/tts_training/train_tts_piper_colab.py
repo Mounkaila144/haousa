@@ -16,9 +16,16 @@ les données, il n'entraîne pas).
     from google.colab import drive; drive.mount('/content/drive')
     %cd /content
     !cp /content/drive/MyDrive/hausa_tts/hausa_tts.zip . && unzip -oq hausa_tts.zip
-    !python hausa_tts/train_tts_piper_colab.py --preparer      # installe Piper (~5 min)
-    !python hausa_tts/train_tts_piper_colab.py --epoques 300   # premier essai court
+    !python hausa_tts/train_tts_piper_colab.py --preparer         # installe Piper (~5 min)
+    !python hausa_tts/train_tts_piper_colab.py --modele-a-blanc  # valide la chaine (~10 min)
+    !python hausa_tts/train_tts_piper_colab.py --epoques 300     # premier essai court
     !python hausa_tts/train_tts_piper_colab.py --exporter
+
+Deux etapes distinctes, et il vaut mieux les separer : APPRENDRE la voix coute
+des heures de GPU, FABRIQUER le modele coute quelques minutes — mais c'est la
+seconde qui echoue sur un detail de format, et rien ne le revele avant d'avoir
+tout entraine. `--modele-a-blanc` la valide d'abord, sur une seule epoque. La
+voix produite n'est pas la votre ; ce qu'on verifie, c'est la plomberie.
 
 **Relancer la même commande après une coupure suffit** : le script repart du
 dernier checkpoint déposé sur Drive, ou du checkpoint français si c'est le
@@ -520,12 +527,73 @@ def exporter() -> None:
     )
 
 
+def modele_a_blanc(lot: int, corpus: Path) -> None:
+    """Fabrique un modèle installable **sans attendre l'entraînement**.
+
+    Deux étapes se suivent dans cette chaîne : apprendre la voix, puis fabriquer
+    le modèle. La première coûte des heures de GPU ; la seconde, quelques
+    minutes — et c'est elle qui peut échouer sur un détail de format que rien ne
+    révèle avant d'avoir tout entraîné.
+
+    On la valide donc d'abord, sur **une seule époque**. Le fichier produit passe
+    par exactement le même chemin que le modèle final : Piper écrit lui-même la
+    configuration (`--data.config_path`), l'export ONNX tourne, la conversion
+    sherpa annote, et l'application peut charger le résultat.
+
+    ⚠️ **La voix sera fausse.** Une époque ne fait qu'effleurer les poids repris
+    du checkpoint français : le modèle prononcera un charabia à consonance
+    française. C'est voulu — ce qu'on vérifie ici, c'est la plomberie :
+    l'export passe, `frontend=characters` est bien posé, l'application accepte
+    le jeu de caractères, et du son sort du téléphone.
+    """
+    print(
+        "chaîne à blanc : 1 époque, uniquement pour valider export et "
+        "conversion.\nla voix produite ne sera PAS la vôtre.\n"
+    )
+    entrainer(epoques=1, lot=lot, corpus=corpus, minutes=10_000)
+    exporter()
+
+    config = DRIVE / f"{VOIX}.onnx.json"
+    modele = DRIVE / f"{VOIX}.onnx"
+    if not config.exists():
+        raise SystemExit(
+            f"configuration absente : {config}\n"
+            "Piper l'écrit pendant `fit` — l'entraînement d'une époque a-t-il abouti ?"
+        )
+
+    sortie = DRIVE / "sherpa"
+    _run(
+        [
+            sys.executable,
+            str(Path(__file__).with_name("convert_tts_for_sherpa.py")),
+            "--modele",
+            str(modele),
+            "--config",
+            str(config),
+            "--sortie",
+            str(sortie),
+        ]
+    )
+    print(
+        f"\nmodèle à blanc prêt : {sortie}\n"
+        "à copier dans apps/mobile/assets/models/hausa_tts/ pour vérifier que\n"
+        "l'application le charge et parle. La voix, elle, viendra de "
+        "l'entraînement."
+    )
+
+
 def main() -> int:
     global DRIVE
 
     parseur = argparse.ArgumentParser(description=__doc__)
     parseur.add_argument("--preparer", action="store_true", help="installer Piper")
     parseur.add_argument("--exporter", action="store_true", help="exporter en ONNX")
+    parseur.add_argument(
+        "--modele-a-blanc",
+        action="store_true",
+        dest="modele_a_blanc",
+        help="1 époque puis export + conversion : valide la chaîne sans entraîner",
+    )
     parseur.add_argument("--epoques", type=int, default=300, help="époques à ajouter")
     parseur.add_argument("--lot", type=int, default=16, help="taille de lot (T4 : 16)")
     parseur.add_argument("--corpus", type=Path, default=Path("/content/hausa_tts/tts_corpus"))
@@ -553,6 +621,9 @@ def main() -> int:
         return 0
     if not args.corpus.exists():
         raise SystemExit(f"corpus introuvable : {args.corpus}")
+    if args.modele_a_blanc:
+        modele_a_blanc(args.lot, args.corpus)
+        return 0
     entrainer(args.epoques, args.lot, args.corpus, args.veille)
     return 0
 

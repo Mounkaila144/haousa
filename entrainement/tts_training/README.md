@@ -28,10 +28,28 @@ from google.colab import drive; drive.mount('/content/drive')
 %cd /content
 !cp /content/drive/MyDrive/hausa_tts/hausa_tts.zip . && unzip -oq hausa_tts.zip
 
-!python hausa_tts/train_tts_piper_colab.py --preparer      # installe Piper (~5 min)
-!python hausa_tts/train_tts_piper_colab.py --epoques 300   # premier tour court
+!python hausa_tts/train_tts_piper_colab.py --preparer         # installe Piper (~5 min)
+!python hausa_tts/train_tts_piper_colab.py --modele-a-blanc  # valide la chaîne (~10 min)
+!python hausa_tts/train_tts_piper_colab.py --epoques 300     # tour court
 !python hausa_tts/train_tts_piper_colab.py --exporter
 ```
+
+### Deux étapes, à ne pas mener ensemble
+
+**Apprendre la voix** coûte des heures de GPU. **Fabriquer le modèle** coûte
+quelques minutes — mais c'est cette seconde étape qui échoue sur un détail de
+format, et rien ne le révèle avant d'avoir tout entraîné.
+
+`--modele-a-blanc` la valide d'abord, sur **une seule époque**. Le fichier
+produit passe par exactement le même chemin que le modèle final : Piper écrit
+lui-même la configuration, l'export ONNX tourne, la conversion sherpa annote, et
+l'application peut charger le résultat.
+
+⚠️ **La voix produite ne sera pas la vôtre.** Une époque effleure à peine les
+poids repris du checkpoint français : le modèle prononcera un charabia à
+consonance française. Ce qu'on vérifie, c'est la plomberie — l'export passe,
+`frontend=characters` est bien posé, l'application accepte le jeu de caractères,
+et du son sort du téléphone.
 
 **Relancer la même commande après une coupure suffit** : le script repart du
 dernier checkpoint déposé sur Drive. `--preparer` est en revanche à refaire après
