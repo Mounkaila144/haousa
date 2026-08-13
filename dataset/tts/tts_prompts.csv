@@ -1,0 +1,379 @@
+id,texte_zarma,affichage
+sys_confirm,Shin wannan ne?,Est-ce bien cela ?
+sys_cannot_answer,Ba zan iya bayar da amsa ba.,Je ne peux pas répondre.
+sys_repeat,Da fatan za a sake magana.,Veuillez répéter.
+amount_0,sifili,0 F
+amount_5,ɗaya,5 F
+amount_10,biyu,10 F
+amount_15,uku,15 F
+amount_20,huɗu,20 F
+amount_25,biyar,25 F
+amount_30,shida,30 F
+amount_35,bakwai,35 F
+amount_40,takwas,40 F
+amount_45,tara,45 F
+amount_50,goma,50 F
+amount_55,goma sha ɗaya,55 F
+amount_60,goma sha biyu,60 F
+amount_65,goma sha uku,65 F
+amount_70,goma sha huɗu,70 F
+amount_75,goma sha biyar,75 F
+amount_80,goma sha shida,80 F
+amount_85,goma sha bakwai,85 F
+amount_90,goma sha takwas,90 F
+amount_95,goma sha tara,95 F
+amount_100,ashirin,100 F
+amount_150,talatin,150 F
+amount_200,arba'in,200 F
+amount_250,hamsin,250 F
+amount_300,sittin,300 F
+amount_350,saba'in,350 F
+amount_400,tamanin,400 F
+amount_450,tasa'in,450 F
+amount_115,ashirin da uku,115 F
+amount_120,ashirin da huɗu,120 F
+amount_125,ashirin da biyar,125 F
+amount_130,ashirin da shida,130 F
+amount_140,ashirin da takwas,140 F
+amount_155,talatin da ɗaya,155 F
+amount_160,talatin da biyu,160 F
+amount_165,talatin da uku,165 F
+amount_175,talatin da biyar,175 F
+amount_195,talatin da tara,195 F
+amount_215,arba'in da uku,215 F
+amount_230,arba'in da shida,230 F
+amount_235,arba'in da bakwai,235 F
+amount_240,arba'in da takwas,240 F
+amount_245,arba'in da tara,245 F
+amount_255,hamsin da ɗaya,255 F
+amount_260,hamsin da biyu,260 F
+amount_265,hamsin da uku,265 F
+amount_270,hamsin da huɗu,270 F
+amount_285,hamsin da bakwai,285 F
+amount_305,sittin da ɗaya,305 F
+amount_315,sittin da uku,315 F
+amount_320,sittin da huɗu,320 F
+amount_335,sittin da bakwai,335 F
+amount_345,sittin da tara,345 F
+amount_360,saba'in da biyu,360 F
+amount_370,saba'in da huɗu,370 F
+amount_380,saba'in da shida,380 F
+amount_390,saba'in da takwas,390 F
+amount_395,saba'in da tara,395 F
+amount_410,tamanin da biyu,410 F
+amount_415,tamanin da uku,415 F
+amount_420,tamanin da huɗu,420 F
+amount_425,tamanin da biyar,425 F
+amount_440,tamanin da takwas,440 F
+amount_455,tasa'in da ɗaya,455 F
+amount_460,tasa'in da biyu,460 F
+amount_470,tasa'in da huɗu,470 F
+amount_480,tasa'in da shida,480 F
+amount_490,tasa'in da takwas,490 F
+amount_500,ɗari,500 F
+amount_510,ɗari da biyu,510 F
+amount_515,ɗari da uku,515 F
+amount_520,ɗari da huɗu,520 F
+amount_545,ɗari da tara,545 F
+amount_550,ɗari da goma,550 F
+amount_560,ɗari da goma sha biyu,560 F
+amount_565,ɗari da goma sha uku,565 F
+amount_570,ɗari da goma sha huɗu,570 F
+amount_595,ɗari da goma sha tara,595 F
+amount_615,ɗari da ashirin da uku,615 F
+amount_635,ɗari da ashirin da bakwai,635 F
+amount_645,ɗari da ashirin da tara,645 F
+amount_650,ɗari da talatin,650 F
+amount_670,ɗari da talatin da huɗu,670 F
+amount_675,ɗari da talatin da biyar,675 F
+amount_690,ɗari da talatin da takwas,690 F
+amount_695,ɗari da talatin da tara,695 F
+amount_700,ɗari da arba'in,700 F
+amount_725,ɗari da arba'in da biyar,725 F
+amount_735,ɗari da arba'in da bakwai,735 F
+amount_740,ɗari da arba'in da takwas,740 F
+amount_755,ɗari da hamsin da ɗaya,755 F
+amount_765,ɗari da hamsin da uku,765 F
+amount_790,ɗari da hamsin da takwas,790 F
+amount_815,ɗari da sittin da uku,815 F
+amount_825,ɗari da sittin da biyar,825 F
+amount_830,ɗari da sittin da shida,830 F
+amount_845,ɗari da sittin da tara,845 F
+amount_865,ɗari da saba'in da uku,865 F
+amount_870,ɗari da saba'in da huɗu,870 F
+amount_880,ɗari da saba'in da shida,880 F
+amount_900,ɗari da tamanin,900 F
+amount_915,ɗari da tamanin da uku,915 F
+amount_920,ɗari da tamanin da huɗu,920 F
+amount_935,ɗari da tamanin da bakwai,935 F
+amount_940,ɗari da tamanin da takwas,940 F
+amount_950,ɗari da tasa'in,950 F
+amount_980,ɗari da tasa'in da shida,980 F
+amount_985,ɗari da tasa'in da bakwai,985 F
+amount_995,ɗari da tasa'in da tara,995 F
+thousand_jika_1000,jikka,1000 F
+thousand_jika_2000,jikka biyu,2000 F
+thousand_jika_3000,jikka uku,3000 F
+thousand_jika_4000,jikka huɗu,4000 F
+thousand_jika_5000,jikka biyar,5000 F
+thousand_jika_6000,jikka shida,6000 F
+thousand_jika_7000,jikka bakwai,7000 F
+thousand_jika_8000,jikka takwas,8000 F
+thousand_jika_9000,jikka tara,9000 F
+thousand_jika_11000,jikka goma sha ɗaya,11000 F
+thousand_jika_12000,jikka goma sha biyu,12000 F
+thousand_jika_14000,jikka goma sha huɗu,14000 F
+thousand_jika_17000,jikka goma sha bakwai,17000 F
+thousand_jika_18000,jikka goma sha takwas,18000 F
+thousand_jika_19000,jikka goma sha tara,19000 F
+thousand_jika_20000,jikka ashirin,20000 F
+thousand_jika_30000,jikka talatin,30000 F
+thousand_jika_31000,jikka talatin da ɗaya,31000 F
+thousand_jika_40000,jikka arba'in,40000 F
+thousand_jika_41000,jikka arba'in da ɗaya,41000 F
+thousand_jika_50000,jikka hamsin,50000 F
+thousand_jika_57000,jikka hamsin da bakwai,57000 F
+thousand_jika_60000,jikka sittin,60000 F
+thousand_jika_70000,jikka saba'in,70000 F
+thousand_jika_71000,jikka saba'in da ɗaya,71000 F
+thousand_jika_80000,jikka tamanin,80000 F
+thousand_jika_82000,jikka tamanin da biyu,82000 F
+thousand_jika_84000,jikka tamanin da huɗu,84000 F
+thousand_jika_87000,jikka tamanin da bakwai,87000 F
+thousand_jika_88000,jikka tamanin da takwas,88000 F
+thousand_jika_89000,jikka tamanin da tara,89000 F
+thousand_jika_90000,jikka tasa'in,90000 F
+thousand_jika_99000,jikka tasa'in da tara,99000 F
+thousand_jika_100000,jikka ɗari,100000 F
+thousand_jika_114000,jikka ɗari da goma sha huɗu,114000 F
+thousand_jika_126000,jikka ɗari da ashirin da shida,126000 F
+thousand_jika_136000,jikka ɗari da talatin da shida,136000 F
+thousand_jika_160000,jikka ɗari da sittin,160000 F
+thousand_jika_165000,jikka ɗari da sittin da biyar,165000 F
+thousand_jika_200000,jikka ɗari biyu,200000 F
+thousand_jika_264000,jikka ɗari biyu da sittin da huɗu,264000 F
+thousand_jika_294000,jikka ɗari biyu da tasa'in da huɗu,294000 F
+thousand_jika_317000,jikka ɗari uku da goma sha bakwai,317000 F
+thousand_jika_383000,jikka ɗari uku da tamanin da uku,383000 F
+thousand_jika_479000,jikka ɗari huɗu da saba'in da tara,479000 F
+thousand_jika_500000,jikka ɗari biyar,500000 F
+thousand_jika_548000,jikka ɗari biyar da arba'in da takwas,548000 F
+thousand_jika_561000,jikka ɗari biyar da sittin da ɗaya,561000 F
+thousand_jika_603000,jikka ɗari shida da uku,603000 F
+thousand_jika_735000,jikka ɗari bakwai da talatin da biyar,735000 F
+thousand_jika_780000,jikka ɗari bakwai da tamanin,780000 F
+thousand_jika_785000,jikka ɗari bakwai da tamanin da biyar,785000 F
+thousand_jika_844000,jikka ɗari takwas da arba'in da huɗu,844000 F
+thousand_jika_900000,jikka ɗari tara,900000 F
+thousand_jika_916000,jikka ɗari tara da goma sha shida,916000 F
+thousand_jika_928000,jikka ɗari tara da ashirin da takwas,928000 F
+thousand_jika_951000,jikka ɗari tara da hamsin da ɗaya,951000 F
+thousand_dubu_1000,dubu,1000 F
+thousand_dubu_2000,dubu biyu,2000 F
+thousand_dubu_3000,dubu uku,3000 F
+thousand_dubu_4000,dubu huɗu,4000 F
+thousand_dubu_5000,dubu biyar,5000 F
+thousand_dubu_6000,dubu shida,6000 F
+thousand_dubu_7000,dubu bakwai,7000 F
+thousand_dubu_8000,dubu takwas,8000 F
+thousand_dubu_9000,dubu tara,9000 F
+thousand_dubu_11000,dubu goma sha ɗaya,11000 F
+thousand_dubu_12000,dubu goma sha biyu,12000 F
+thousand_dubu_14000,dubu goma sha huɗu,14000 F
+thousand_dubu_17000,dubu goma sha bakwai,17000 F
+thousand_dubu_18000,dubu goma sha takwas,18000 F
+thousand_dubu_19000,dubu goma sha tara,19000 F
+thousand_dubu_20000,dubu ashirin,20000 F
+thousand_dubu_30000,dubu talatin,30000 F
+thousand_dubu_31000,dubu talatin da ɗaya,31000 F
+thousand_dubu_40000,dubu arba'in,40000 F
+thousand_dubu_41000,dubu arba'in da ɗaya,41000 F
+thousand_dubu_50000,dubu hamsin,50000 F
+thousand_dubu_57000,dubu hamsin da bakwai,57000 F
+thousand_dubu_60000,dubu sittin,60000 F
+thousand_dubu_70000,dubu saba'in,70000 F
+thousand_dubu_71000,dubu saba'in da ɗaya,71000 F
+thousand_dubu_80000,dubu tamanin,80000 F
+thousand_dubu_82000,dubu tamanin da biyu,82000 F
+thousand_dubu_84000,dubu tamanin da huɗu,84000 F
+thousand_dubu_87000,dubu tamanin da bakwai,87000 F
+thousand_dubu_88000,dubu tamanin da takwas,88000 F
+thousand_dubu_89000,dubu tamanin da tara,89000 F
+thousand_dubu_90000,dubu tasa'in,90000 F
+thousand_dubu_99000,dubu tasa'in da tara,99000 F
+thousand_dubu_100000,dubu ɗari,100000 F
+thousand_dubu_114000,dubu ɗari da goma sha huɗu,114000 F
+thousand_dubu_126000,dubu ɗari da ashirin da shida,126000 F
+thousand_dubu_136000,dubu ɗari da talatin da shida,136000 F
+thousand_dubu_160000,dubu ɗari da sittin,160000 F
+thousand_dubu_165000,dubu ɗari da sittin da biyar,165000 F
+thousand_dubu_200000,dubu ɗari biyu,200000 F
+thousand_dubu_264000,dubu ɗari biyu da sittin da huɗu,264000 F
+thousand_dubu_294000,dubu ɗari biyu da tasa'in da huɗu,294000 F
+thousand_dubu_317000,dubu ɗari uku da goma sha bakwai,317000 F
+thousand_dubu_383000,dubu ɗari uku da tamanin da uku,383000 F
+thousand_dubu_479000,dubu ɗari huɗu da saba'in da tara,479000 F
+thousand_dubu_500000,dubu ɗari biyar,500000 F
+thousand_dubu_548000,dubu ɗari biyar da arba'in da takwas,548000 F
+thousand_dubu_561000,dubu ɗari biyar da sittin da ɗaya,561000 F
+thousand_dubu_603000,dubu ɗari shida da uku,603000 F
+thousand_dubu_735000,dubu ɗari bakwai da talatin da biyar,735000 F
+thousand_dubu_780000,dubu ɗari bakwai da tamanin,780000 F
+thousand_dubu_785000,dubu ɗari bakwai da tamanin da biyar,785000 F
+thousand_dubu_844000,dubu ɗari takwas da arba'in da huɗu,844000 F
+thousand_dubu_900000,dubu ɗari tara,900000 F
+thousand_dubu_916000,dubu ɗari tara da goma sha shida,916000 F
+thousand_dubu_928000,dubu ɗari tara da ashirin da takwas,928000 F
+thousand_dubu_951000,dubu ɗari tara da hamsin da ɗaya,951000 F
+mixed_jika_3105,jikka uku da ashirin da ɗaya,3105 F
+mixed_jika_3610,jikka uku da ɗari da ashirin da biyu,3610 F
+mixed_jika_7025,jikka bakwai da biyar,7025 F
+mixed_jika_7225,jikka bakwai da arba'in da biyar,7225 F
+mixed_jika_9320,jikka tara da sittin da huɗu,9320 F
+mixed_jika_9985,jikka tara da ɗari da tasa'in da bakwai,9985 F
+mixed_jika_12040,jikka goma sha biyu da takwas,12040 F
+mixed_jika_12580,jikka goma sha biyu da ɗari da goma sha shida,12580 F
+mixed_jika_21240,jikka ashirin da ɗaya da arba'in da takwas,21240 F
+mixed_jika_21675,jikka ashirin da ɗaya da ɗari da talatin da biyar,21675 F
+mixed_jika_32560,jikka talatin da biyu da ɗari da goma sha biyu,32560 F
+mixed_jika_32675,jikka talatin da biyu da ɗari da talatin da biyar,32675 F
+mixed_jika_34710,jikka talatin da huɗu da ɗari da arba'in da biyu,34710 F
+mixed_jika_34965,jikka talatin da huɗu da ɗari da tasa'in da uku,34965 F
+mixed_jika_52140,jikka hamsin da biyu da ashirin da takwas,52140 F
+mixed_jika_52170,jikka hamsin da biyu da talatin da huɗu,52170 F
+mixed_jika_59595,jikka hamsin da tara da ɗari da goma sha tara,59595 F
+mixed_jika_59750,jikka hamsin da tara da ɗari da hamsin,59750 F
+mixed_jika_61430,jikka sittin da ɗaya da tamanin da shida,61430 F
+mixed_jika_61480,jikka sittin da ɗaya da tasa'in da shida,61480 F
+mixed_jika_75025,jikka saba'in da biyar da biyar,75025 F
+mixed_jika_75070,jikka saba'in da biyar da goma sha huɗu,75070 F
+mixed_jika_81370,jikka tamanin da ɗaya da saba'in da huɗu,81370 F
+mixed_jika_81790,jikka tamanin da ɗaya da ɗari da hamsin da takwas,81790 F
+mixed_jika_85735,jikka tamanin da biyar da ɗari da arba'in da bakwai,85735 F
+mixed_jika_85950,jikka tamanin da biyar da ɗari da tasa'in,85950 F
+mixed_jika_88575,jikka tamanin da takwas da ɗari da goma sha biyar,88575 F
+mixed_jika_88760,jikka tamanin da takwas da ɗari da hamsin da biyu,88760 F
+mixed_jika_89095,jikka tamanin da tara da goma sha tara,89095 F
+mixed_jika_89260,jikka tamanin da tara da hamsin da biyu,89260 F
+mixed_jika_96260,jikka tasa'in da shida da hamsin da biyu,96260 F
+mixed_jika_96875,jikka tasa'in da shida da ɗari da saba'in da biyar,96875 F
+mixed_dubu_9155,dubu tara da talatin da ɗaya,9155 F
+mixed_dubu_9650,dubu tara da ɗari da talatin,9650 F
+mixed_dubu_16090,dubu goma sha shida da goma sha takwas,16090 F
+mixed_dubu_16990,dubu goma sha shida da ɗari da tasa'in da takwas,16990 F
+mixed_dubu_29205,dubu ashirin da tara da arba'in da ɗaya,29205 F
+mixed_dubu_29390,dubu ashirin da tara da saba'in da takwas,29390 F
+mixed_dubu_35645,dubu talatin da biyar da ɗari da ashirin da tara,35645 F
+mixed_dubu_35825,dubu talatin da biyar da ɗari da sittin da biyar,35825 F
+mixed_dubu_53020,dubu hamsin da uku da huɗu,53020 F
+mixed_dubu_53525,dubu hamsin da uku da ɗari da biyar,53525 F
+mixed_dubu_56365,dubu hamsin da shida da saba'in da uku,56365 F
+mixed_dubu_56855,dubu hamsin da shida da ɗari da saba'in da ɗaya,56855 F
+mixed_dubu_61460,dubu sittin da ɗaya da tasa'in da biyu,61460 F
+mixed_dubu_61590,dubu sittin da ɗaya da ɗari da goma sha takwas,61590 F
+mixed_dubu_74395,dubu saba'in da huɗu da saba'in da tara,74395 F
+mixed_dubu_74960,dubu saba'in da huɗu da ɗari da tasa'in da biyu,74960 F
+mixed_dubu_75180,dubu saba'in da biyar da talatin da shida,75180 F
+mixed_dubu_75495,dubu saba'in da biyar da tasa'in da tara,75495 F
+mixed_dubu_77780,dubu saba'in da bakwai da ɗari da hamsin da shida,77780 F
+mixed_dubu_77805,dubu saba'in da bakwai da ɗari da sittin da ɗaya,77805 F
+mixed_dubu_82480,dubu tamanin da biyu da tasa'in da shida,82480 F
+mixed_dubu_82545,dubu tamanin da biyu da ɗari da tara,82545 F
+mixed_dubu_85230,dubu tamanin da biyar da arba'in da shida,85230 F
+mixed_dubu_85500,dubu tamanin da biyar da ɗari,85500 F
+mixed_dubu_86010,dubu tamanin da shida da biyu,86010 F
+mixed_dubu_86975,dubu tamanin da shida da ɗari da tasa'in da biyar,86975 F
+mixed_dubu_92040,dubu tasa'in da biyu da takwas,92040 F
+mixed_dubu_92515,dubu tasa'in da biyu da ɗari da uku,92515 F
+mixed_dubu_96580,dubu tasa'in da shida da ɗari da goma sha shida,96580 F
+mixed_dubu_96820,dubu tasa'in da shida da ɗari da sittin da huɗu,96820 F
+mixed_dubu_97180,dubu tasa'in da bakwai da talatin da shida,97180 F
+mixed_dubu_97930,dubu tasa'in da bakwai da ɗari da tamanin da shida,97930 F
+op_+_63000_42000,jikka sittin da uku a ƙara jikka arba'in da biyu,63000 + 42000
+op_+_51000_840,jikka hamsin da ɗaya a ƙara ɗari da sittin da takwas,51000 + 840
+op_+_145_910,ashirin da tara a ƙara ɗari da tamanin da biyu,145 + 910
+op_+_670_70000,ɗari da talatin da huɗu a ƙara jikka saba'in,670 + 70000
+op_+_305_565,sittin da ɗaya a ƙara ɗari da goma sha uku,305 + 565
+op_+_85_520,goma sha bakwai a ƙara ɗari da huɗu,85 + 520
+op_+_240_40000,arba'in da takwas a ƙara jikka arba'in,240 + 40000
+op_+_250_710,hamsin a ƙara ɗari da arba'in da biyu,250 + 710
+op_+_470_175,tasa'in da huɗu a ƙara talatin da biyar,470 + 175
+op_+_60_17000,goma sha biyu a ƙara jikka goma sha bakwai,60 + 17000
+op_+_45000_975,jikka arba'in da biyar a ƙara ɗari da tasa'in da biyar,45000 + 975
+op_+_675_640,ɗari da talatin da biyar a ƙara ɗari da ashirin da takwas,675 + 640
+op_+_20_385,huɗu a ƙara saba'in da bakwai,20 + 385
+op_+_835_1000,ɗari da sittin da bakwai a ƙara jikka,835 + 1000
+op_+_210_6000,arba'in da biyu a ƙara jikka shida,210 + 6000
+op_+_980_115,ɗari da tasa'in da shida a ƙara ashirin da uku,980 + 115
+op_+_210_21000,arba'in da biyu a ƙara jikka ashirin da ɗaya,210 + 21000
+op_+_30000_265,jikka talatin a ƙara hamsin da uku,30000 + 265
+op_+_67000_370,jikka sittin da bakwai a ƙara saba'in da huɗu,67000 + 370
+op_+_7000_245,jikka bakwai a ƙara arba'in da tara,7000 + 245
+op_-_53000_465,jikka hamsin da uku a hidda tasa'in da uku,53000 - 465
+op_-_315_805,sittin da uku a hidda ɗari da sittin da ɗaya,315 - 805
+op_-_29000_350,jikka ashirin da tara a hidda saba'in,29000 - 350
+op_-_550_370,ɗari da goma a hidda saba'in da huɗu,550 - 370
+op_-_540_62000,ɗari da takwas a hidda jikka sittin da biyu,540 - 62000
+op_-_915_255,ɗari da tamanin da uku a hidda hamsin da ɗaya,915 - 255
+op_-_610_135,ɗari da ashirin da biyu a hidda ashirin da bakwai,610 - 135
+op_-_59000_435,jikka hamsin da tara a hidda tamanin da bakwai,59000 - 435
+op_-_97000_130,jikka tasa'in da bakwai a hidda ashirin da shida,97000 - 130
+op_-_415_715,tamanin da uku a hidda ɗari da arba'in da uku,415 - 715
+op_-_38000_41000,jikka talatin da takwas a hidda jikka arba'in da ɗaya,38000 - 41000
+op_-_90_995,goma sha takwas a hidda ɗari da tasa'in da tara,90 - 995
+op_-_27000_25000,jikka ashirin da bakwai a hidda jikka ashirin da biyar,27000 - 25000
+op_-_470_855,tasa'in da huɗu a hidda ɗari da saba'in da ɗaya,470 - 855
+op_-_395_66000,saba'in da tara a hidda jikka sittin da shida,395 - 66000
+op_-_200_15000,arba'in a hidda jikka goma sha biyar,200 - 15000
+op_-_915_36000,ɗari da tamanin da uku a hidda jikka talatin da shida,915 - 36000
+op_-_91000_325,jikka tasa'in da ɗaya a hidda sittin da biyar,91000 - 325
+op_-_25_245,biyar a hidda arba'in da tara,25 - 245
+op_-_73000_320,jikka saba'in da uku a hidda sittin da huɗu,73000 - 320
+op_*_880_63,ɗari da saba'in da shida sau sittin da uku,880 * 63
+op_*_83000_65,jikka tamanin da uku sau sittin da biyar,83000 * 65
+op_*_500_53,ɗari sau hamsin da uku,500 * 53
+op_*_25_37,biyar sau talatin da bakwai,25 * 37
+op_*_935_62,ɗari da tamanin da bakwai sau sittin da biyu,935 * 62
+op_*_960_19,ɗari da tasa'in da biyu sau goma sha tara,960 * 19
+op_*_260_82,hamsin da biyu sau tamanin da biyu,260 * 82
+op_*_52000_6,jikka hamsin da biyu sau shida,52000 * 6
+op_*_335_92,sittin da bakwai sau tasa'in da biyu,335 * 92
+op_*_660_25,ɗari da talatin da biyu sau ashirin da biyar,660 * 25
+op_*_24000_38,jikka ashirin da huɗu sau talatin da takwas,24000 * 38
+op_*_250_35,hamsin sau talatin da biyar,250 * 35
+op_*_105_17,ashirin da ɗaya sau goma sha bakwai,105 * 17
+op_*_175_5,talatin da biyar sau biyar,175 * 5
+op_*_53000_44,jikka hamsin da uku sau arba'in da huɗu,53000 * 44
+op_*_530_89,ɗari da shida sau tamanin da tara,530 * 89
+op_*_50_59,goma sau hamsin da tara,50 * 59
+op_*_380_66,saba'in da shida sau sittin da shida,380 * 66
+op_*_775_87,ɗari da hamsin da biyar sau tamanin da bakwai,775 * 87
+op_*_980_45,ɗari da tasa'in da shida sau arba'in da biyar,980 * 45
+op_/_710_67,ɗari da arba'in da biyu a raba chi sau sittin da bakwai,710 / 67
+op_/_8000_18,jikka takwas a raba chi sau goma sha takwas,8000 / 18
+op_/_970_37,ɗari da tasa'in da huɗu a raba chi sau talatin da bakwai,970 / 37
+op_/_115_60,ashirin da uku a raba chi sau sittin,115 / 60
+op_/_61000_87,jikka sittin da ɗaya a raba chi sau tamanin da bakwai,61000 / 87
+op_/_795_7,ɗari da hamsin da tara a raba chi sau bakwai,795 / 7
+op_/_805_47,ɗari da sittin da ɗaya a raba chi sau arba'in da bakwai,805 / 47
+op_/_85_90,goma sha bakwai a raba chi sau tasa'in,85 / 90
+op_/_175_41,talatin da biyar a raba chi sau arba'in da ɗaya,175 / 41
+op_/_225_21,arba'in da biyar a raba chi sau ashirin da ɗaya,225 / 21
+op_/_75_71,goma sha biyar a raba chi sau saba'in da ɗaya,75 / 71
+op_/_655_8,ɗari da talatin da ɗaya a raba chi sau takwas,655 / 8
+op_/_780_39,ɗari da hamsin da shida a raba chi sau talatin da tara,780 / 39
+op_/_110_70,ashirin da biyu a raba chi sau saba'in,110 / 70
+op_/_385_91,saba'in da bakwai a raba chi sau tasa'in da ɗaya,385 / 91
+op_/_540_3,ɗari da takwas a raba chi sau uku,540 / 3
+op_/_100_20,ashirin a raba chi sau ashirin,100 / 20
+op_/_255_85,hamsin da ɗaya a raba chi sau tamanin da biyar,255 / 85
+op_/_875_59,ɗari da saba'in da biyar a raba chi sau hamsin da tara,875 / 59
+op_/_755_13,ɗari da hamsin da ɗaya a raba chi sau goma sha uku,755 / 13
+remainder_605_12,goma saura ɗaya,50 F reste 5 F
+remainder_115_11,biyu saura ɗaya,10 F reste 5 F
+remainder_860_9,goma sha tara saura ɗaya,95 F reste 5 F
+remainder_410_9,tara saura ɗaya,45 F reste 5 F
+remainder_725_9,goma sha shida saura ɗaya,80 F reste 5 F
+remainder_825_18,tara saura uku,45 F reste 15 F
+remainder_835_15,goma sha ɗaya saura biyu,55 F reste 10 F
+remainder_290_14,huɗu saura biyu,20 F reste 10 F
