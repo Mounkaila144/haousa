@@ -43,7 +43,7 @@ abstract interface class HausaTtsSynthesizer {
 ///
 /// La voix est désormais **mono-locuteur** : elle est entraînée sur une seule
 /// personne, donc l'identifiant vaut 0 et il n'y a rien à choisir. L'ancienne
-/// version exigeait un locuteur `M3` à l'identifiant 1, hérité d'un modèle
+/// version exigeait un locuteur nommé à un identifiant fixe, hérité d'un modèle
 /// multi-locuteurs ; cette contrainte refuserait de charger la nouvelle voix.
 ///
 /// Un modèle multi-locuteurs est refusé plutôt que deviné : sans consigne, rien
@@ -304,7 +304,7 @@ class _TtsWorker {
         errors.first.then<Object?>((dynamic error) {
           throw HausaTtsException(
             'WORKER_INIT_FAILED',
-            'Impossible de charger le modèle local M3 : $error',
+            'Impossible de charger la voix hausa locale : $error',
           );
         }),
       ]).timeout(const Duration(minutes: 2));
@@ -347,7 +347,7 @@ class _TtsWorker {
       const Duration(minutes: 2),
       onTimeout: () => throw const HausaTtsException(
         'SYNTHESIS_TIMEOUT',
-        'La synthèse locale M3 a dépassé deux minutes.',
+        'La synthèse locale a dépassé deux minutes.',
       ),
     );
     reply.close();

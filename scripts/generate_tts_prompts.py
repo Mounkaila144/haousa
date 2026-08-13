@@ -72,6 +72,7 @@ SYSTEM_PROMPTS = [
     ("sys_confirm", "Shin wannan ne?", "Est-ce bien cela ?"),
     ("sys_cannot_answer", "Ba zan iya bayar da amsa ba.", "Je ne peux pas répondre."),
     ("sys_repeat", "Da fatan za a sake magana.", "Veuillez répéter."),
+    ("sys_result", "Sakamakon shi ne", "Le résultat est"),
 ]
 
 

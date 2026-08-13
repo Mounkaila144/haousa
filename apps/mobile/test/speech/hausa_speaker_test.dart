@@ -80,13 +80,13 @@ void main() {
       expect(played, isEmpty);
     });
 
-    test('une erreur M3 est claire et aucune audio n’est jouée', () async {
+    test('une panne de synthèse est claire et aucune audio n’est jouée', () async {
       final List<Uint8List> played = <Uint8List>[];
       final HausaSpeaker speaker = fakeHausaSpeaker(
         played: played,
         failure: const HausaTtsException(
-          'M3_NOT_FOUND',
-          'La voix obligatoire M3 est absente.',
+          'MULTI_SPEAKER_MODEL',
+          'Ce modèle porte plusieurs locuteurs.',
         ),
       );
 
@@ -94,7 +94,7 @@ void main() {
         await speaker.speak(utteranceFromHausa('talatin')),
         SpeechOutcome.incomplete,
       );
-      expect(speaker.lastError, contains('M3'));
+      expect(speaker.lastError, contains('locuteurs'));
       expect(played, isEmpty);
     });
 

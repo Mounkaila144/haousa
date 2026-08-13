@@ -45,7 +45,7 @@ void main() {
     final systeme =
         prompts.where((prompt) => prompt.id.startsWith('sys_')).toList();
 
-    expect(systeme, hasLength(3));
+    expect(systeme, hasLength(4));
     expect(
       systeme.map((prompt) => prompt.hausaText),
       containsAll(<String>['Shin wannan ne?']),

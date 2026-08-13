@@ -2,6 +2,7 @@ id,texte_hausa,affichage
 sys_confirm,Shin wannan ne?,Est-ce bien cela ?
 sys_cannot_answer,Ba zan iya bayar da amsa ba.,Je ne peux pas répondre.
 sys_repeat,Da fatan za a sake magana.,Veuillez répéter.
+sys_result,Sakamakon shi ne,Le résultat est
 amount_0,sifili,0 F
 amount_5,ɗaya,5 F
 amount_10,biyu,10 F

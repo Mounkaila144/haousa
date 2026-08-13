@@ -41,5 +41,6 @@ flutter:
   # le manifeste d'intégrité. Aucun espeak-ng-data n'est requis par ce modèle.
   assets:
     - assets/models/hausa_tts/
+    - assets/voice/
     - assets/brand/
     - brand-source/logo.png

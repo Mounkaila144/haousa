@@ -161,9 +161,12 @@ void main() {
     expect(harness.recognition.calls, 1);
     expect(find.byKey(const Key('session-answered')), findsOneWidget);
     expect(find.text('23 + 15\n=\n38'), findsOneWidget);
+    // La phrase « Sakamakon shi ne » n'est plus synthétisée : elle est rejouée
+    // depuis son enregistrement, le modèle ne l'ayant jamais apprise. Seuls
+    // l'opération et le résultat passent par la synthèse, chacun séparément.
     expect(harness.synthesized, <String>[
-      'ashirin da uku a ƙara goma sha biyar '
-          'Sakamakon shi ne talatin da takwas',
+      'ashirin da uku a ƙara goma sha biyar',
+      'talatin da takwas',
     ]);
   });
 

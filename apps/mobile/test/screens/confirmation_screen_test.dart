@@ -235,7 +235,11 @@ void main() {
         synthesized: synthesized,
       );
 
-      expect(played, hasLength(1));
+      // Deux sons par relecture : la consigne enregistrée, puis l'opération
+      // synthétisée. Le modèle n'a jamais appris la consigne.
+      // Deux sons : la consigne enregistrée, puis l'opération synthétisée.
+      expect(played, hasLength(2));
+      expect(synthesized.where((String t) => t.contains('a ƙara')), hasLength(1));
       expect(
         find.byKey(const Key('confirm-expression-replay-button')),
         findsNothing,
@@ -247,14 +251,20 @@ void main() {
       expect(find.byKey(const Key('request-repeat-button')), findsOneWidget);
 
       await tester.pump(const Duration(milliseconds: 2999));
-      expect(played, hasLength(1));
+      expect(played, hasLength(2));
 
       await tester.pump(const Duration(milliseconds: 1));
       await tester.pumpAndSettle();
-      expect(played, hasLength(2));
+      expect(played, hasLength(4), reason: 'deux relectures, deux sons chacune');
       expect(
-        synthesized.where((String text) => text.startsWith('Shin wannan ne?')),
+        synthesized.where((String t) => t.contains('a ƙara')),
         hasLength(2),
+        reason: 'l’opération, relue deux fois',
+      );
+      // La consigne ne passe plus par la synthèse : elle est rejouée.
+      expect(
+        synthesized.where((String text) => text.contains('Shin')),
+        isEmpty,
       );
 
       await tester.tap(find.byKey(const Key('confirm-expression-button')));
@@ -265,8 +275,11 @@ void main() {
       expect(repository.requests.single.feedbackType, FeedbackType.confirmed);
       expect(repository.requests.single.proposedNumber, 38);
       expect(find.byKey(const Key('calculation-screen')), findsOneWidget);
+      // La consigne est rejouée depuis son enregistrement, elle n'apparaît donc
+      // plus dans les demandes de synthèse : on compte les relectures de
+      // l'opération, qui doivent s'être arrêtées à deux.
       expect(
-        synthesized.where((String text) => text.startsWith('Shin wannan ne?')),
+        synthesized.where((String text) => text.contains('a ƙara')),
         hasLength(2),
         reason: 'la boucle de confirmation doit être arrêtée',
       );

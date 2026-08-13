@@ -1,4 +1,4 @@
-import 'dart:typed_data';
+import 'package:flutter/services.dart';
 
 import 'package:hausa_mobile/speech/hausa_speaker.dart';
 import 'package:hausa_mobile/speech/hausa_tts_engine.dart';
@@ -22,6 +22,22 @@ class FakeHausaTtsSynthesizer implements HausaTtsSynthesizer {
   Future<void> dispose() async => disposed = true;
 }
 
+/// Fournit les enregistrements de consignes sans toucher aux assets réels.
+///
+/// Les tests vérifient l'**aiguillage** — quelle voie emprunte chaque tronçon —
+/// pas le contenu audio. Passer par `rootBundle` les ferait dépendre de la
+/// présence des WAV, et échouer pour une raison sans rapport avec ce qu'ils
+/// contrôlent.
+class FakePromptBundle extends CachingAssetBundle {
+  final List<String> charges = <String>[];
+
+  @override
+  Future<ByteData> load(String key) async {
+    charges.add(key);
+    return ByteData.view(wavFromPcm(Uint8List(320)).buffer);
+  }
+}
+
 HausaSpeaker fakeHausaSpeaker({
   required List<Uint8List> played,
   List<String>? synthesized,
@@ -35,11 +51,13 @@ HausaSpeaker fakeHausaSpeaker({
     // details from production code.
     return HausaSpeaker(
       synthesizer: _RecordingSynthesizer(synthesizer, synthesized),
+      bundle: FakePromptBundle(),
       play: (Uint8List wav) async => played.add(wav),
     );
   }
   return HausaSpeaker(
     synthesizer: synthesizer,
+    bundle: FakePromptBundle(),
     play: (Uint8List wav) async => played.add(wav),
   );
 }

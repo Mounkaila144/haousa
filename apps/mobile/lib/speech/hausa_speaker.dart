@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -25,22 +26,39 @@ const AudioContextAndroid recordingCueAndroidAudioContext = AudioContextAndroid(
 );
 
 class HausaSpeaker {
-  HausaSpeaker({required this.synthesizer, required this.play});
+  HausaSpeaker({required this.synthesizer, required this.play, this.bundle});
 
   final HausaTtsSynthesizer synthesizer;
   final WavPlayer play;
+
+  /// Source des enregistrements de consignes. `null` : les assets de l'app.
+  final AssetBundle? bundle;
 
   String? lastError;
 
   List<VoiceSegment> preferred(String canonicalText, String spokenText) =>
       preferredUtterance(canonicalText, spokenText);
 
+  Future<Uint8List> _loadRecording(String assetPath) async {
+    final ByteData data = await (bundle ?? rootBundle).load(assetPath);
+    return data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+  }
+
+  /// Dit l'énoncé, chaque tronçon par la voie qui lui revient.
+  ///
+  /// Les consignes fixes sont **rejouées** depuis leur enregistrement ; seuls
+  /// les montants et les opérations passent par la synthèse. Le modèle a été
+  /// entraîné sur les seuls nombres : lui confier « Shin wannan ne ? » lui
+  /// ferait inventer des mots qu'il n'a jamais vus.
   Future<SpeechOutcome> speak(List<VoiceSegment> utterance) async {
     if (utterance.isEmpty) return SpeechOutcome.incomplete;
     try {
-      final String hausaText = utteranceToHausaText(utterance);
-      final Uint8List wav = await synthesizer.synthesizeWav(hausaText);
-      await play(wav);
+      for (final VoiceChunk chunk in splitUtterance(utterance)) {
+        final Uint8List wav = chunk.isRecording
+            ? await _loadRecording(chunk.assetPath!)
+            : await synthesizer.synthesizeWav(chunk.text!);
+        await play(wav);
+      }
       lastError = null;
       return SpeechOutcome.spoken;
     } on HausaTtsException catch (error) {
