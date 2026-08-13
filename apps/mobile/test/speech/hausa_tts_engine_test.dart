@@ -68,6 +68,19 @@ void main() {
     expect(normalizeHausaTtsText('  TASA’IN   DA HUƊU  '), "tasa'in da huɗu");
   });
 
+  test('translittère ƙ en q, comme le corpus d’entraînement', () {
+    // `ƙ` n'existe pas dans la table du modèle : le corpus a été écrit avec
+    // `q`. Sans la même substitution ici, `a ƙara` serait refusé au chargement.
+    expect(normalizeHausaTtsText('a ƙara'), 'a qara');
+    expect(normalizeHausaTtsText('ɗari a ƙara jikka'), contains('a qara'));
+  });
+
+  test('laisse intactes les implosives présentes dans la table', () {
+    // `ɗ` et `ɓ` sont de l'IPA : le modèle les connaît, on n'y touche pas.
+    expect(normalizeHausaTtsText('ɗari'), 'ɗari'.toLowerCase());
+    expect(normalizeHausaTtsText('huɗu'), contains('u'));
+  });
+
   test('refuse les chiffres avant tout chargement du modèle', () async {
     final HausaTtsEngine engine = HausaTtsEngine(bundle: _UnusedBundle());
     await expectLater(

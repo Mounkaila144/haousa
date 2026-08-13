@@ -48,19 +48,19 @@ asr_confusions:
   tasain: "tasa'in"
 
 # Formes de PRONONCIATION : ce que la synthese vocale doit lire quand la forme
-# ecrite ne se prononce pas telle quelle. Structure DISTINCTE des variantes
-# linguistiques (entree) et des confusions ASR (correction) : celle-ci ne
-# concerne que la SORTIE parlee, et n'entre jamais dans l'analyse.
+# ecrite ne se prononce pas telle quelle.
 #
-# Le modele Piper embarque est en `phoneme_type: text` — il lit les caracteres,
-# pas des phonemes espeak. Une gemination ecrite `kk` lui passe donc sous le
-# nez et `jikka` sort en « jika ».
+# VIDE, et il faut qu'elle le reste. Elle a porte `jikka -> "jikk ka"` tant que
+# la voix etait un modele generique qui lisait des caracteres sans avoir jamais
+# entendu de hausa : la gemination `kk` lui passait sous le nez et `jikka`
+# sortait en « jika ». La coupe etait donc ecrite a la main dans le texte.
 #
-# Forme retenue apres ECOUTE sur l'appareil : `jikk ka`. L'espace est un token
-# du modele au meme titre qu'une lettre, et c'est lui qui rend le mieux la
-# coupe attendue — « jikk » puis « ka ». Une variante a l'apostrophe
-# (`jik'ka`) avait ete essayee d'abord : correcte sur le papier, moins bonne a
-# l'oreille. La chaine mobile rejoint les segments en UNE seule chaine avant
-# synthese (voice_bank.dart), donc l'espace n'introduit aucune pause.
-spoken_forms:
-  jikka: "jikk ka"
+# La voix est desormais entrainee sur des enregistrements ou `jikka` est
+# reellement prononce. Le modele a appris la gemination ; lui envoyer `jikk ka`
+# reviendrait a lui presenter une graphie absente de son corpus, et degraderait
+# la prononciation au lieu de l'ameliorer.
+#
+# Cette section reste en place : une forme ecrite qui ne se lit pas telle quelle
+# peut reapparaitre. Mais toute entree ajoutee ici doit d'abord exister dans le
+# corpus d'entrainement, sans quoi elle sera prononcee au hasard.
+spoken_forms: {}

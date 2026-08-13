@@ -9,8 +9,8 @@ import 'package:hausa_mobile/screens/correction_screen.dart';
 import 'package:hausa_mobile/screens/history_screen.dart';
 import 'package:hausa_mobile/screens/processing_screen.dart';
 import 'package:hausa_mobile/screens/privacy_screen.dart';
-import 'package:hausa_mobile/screens/recording_screen.dart';
 import 'package:hausa_mobile/screens/result_screen.dart';
+import 'package:hausa_mobile/screens/session_screen.dart';
 import 'package:hausa_mobile/screens/settings_screen.dart';
 import 'package:hausa_mobile/screens/startup_gate.dart';
 import 'package:hausa_mobile/widgets/brand_app_bar.dart';
@@ -34,7 +34,7 @@ abstract final class AppRoutes {
 
   static final Map<String, WidgetBuilder> routes = <String, WidgetBuilder>{
     home: (_) => const StartupGate(),
-    recording: (_) => const RecordingScreen(),
+    recording: (_) => const SessionScreen(),
     history: (_) => const HistoryScreen(),
     contribute: (_) => const ContributionRoute(),
     privacy: (_) => const PrivacyScreen(),

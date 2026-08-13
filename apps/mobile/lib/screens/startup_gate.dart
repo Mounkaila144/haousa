@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hausa_mobile/features/contribution/application/consent_controller.dart';
 import 'package:hausa_mobile/features/contribution/presentation/consent_screen.dart';
-import 'package:hausa_mobile/screens/home_screen.dart';
+import 'package:hausa_mobile/screens/session_screen.dart';
 import 'package:hausa_mobile/theme/brand.dart';
 import 'package:hausa_mobile/update/mobile_update.dart';
 import 'package:hausa_mobile/widgets/brand_app_bar.dart';
@@ -27,7 +27,7 @@ class StartupGate extends ConsumerWidget {
         }
         final ConsentState consent = ref.watch(consentStatusProvider);
         return consent.hasValidConsent
-            ? const HomeScreen()
+            ? const SessionScreen()
             : const ConsentScreen(mandatory: true);
       },
     );

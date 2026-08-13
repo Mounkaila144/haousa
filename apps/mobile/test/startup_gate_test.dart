@@ -128,7 +128,7 @@ void main() {
     expect(find.byKey(const Key('home-screen')), findsNothing);
   });
 
-  testWidgets('build courant et accord valide ouvrent l’accueil', (
+  testWidgets('build courant et accord valide ouvrent la session vocale', (
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(
@@ -143,6 +143,7 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.byKey(const Key('home-screen')), findsOneWidget);
+    expect(find.byKey(const Key('session-screen')), findsOneWidget);
+    expect(find.byKey(const Key('push-to-talk')), findsOneWidget);
   });
 }

@@ -78,7 +78,7 @@ void main() {
     ),
   ];
 
-  testWidgets('démarre sur l’écran Accueil dans un ProviderScope', (
+  testWidgets('démarre sur la session vocale dans un ProviderScope', (
     WidgetTester tester,
   ) async {
     final SemanticsHandle semantics = tester.ensureSemantics();
@@ -88,17 +88,14 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('Calculatrice Hausa'), findsOneWidget);
-    expect(find.byIcon(Icons.mic), findsOneWidget);
+    expect(find.byKey(const Key('brand-logo')), findsOneWidget);
+    expect(find.byIcon(Icons.mic_rounded), findsOneWidget);
     expect(find.byKey(const Key('open-history-button')), findsNothing);
     expect(find.byKey(const Key('open-contribution-button')), findsNothing);
     expect(find.byKey(const Key('open-privacy-button')), findsOneWidget);
-    expect(
-      find.bySemanticsLabel('Démarrer un enregistrement audio'),
-      findsOneWidget,
-    );
+    expect(find.bySemanticsLabel('Maintenir pour parler'), findsOneWidget);
     final Size microphoneButtonSize = tester.getSize(
-      find.byKey(const Key('start-recording-button')),
+      find.byKey(const Key('push-to-talk')),
     );
     expect(microphoneButtonSize.width, greaterThanOrEqualTo(48));
     expect(microphoneButtonSize.height, greaterThanOrEqualTo(48));
@@ -108,7 +105,7 @@ void main() {
     semantics.dispose();
   });
 
-  testWidgets('les destinations restent navigables avec un accueil simplifié', (
+  testWidgets('les destinations restent navigables depuis la session', (
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(
@@ -116,7 +113,7 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.byKey(const Key('home-screen')), findsOneWidget);
+    expect(find.byKey(const Key('session-screen')), findsOneWidget);
     expect(AppRoutes.routes.containsKey(AppRoutes.recording), isTrue);
 
     final NavigatorState navigator = tester.state(find.byType(Navigator));
@@ -168,7 +165,7 @@ void main() {
       await tester.pageBack();
       await tester.pumpAndSettle();
     }
-    expect(find.byKey(const Key('home-screen')), findsOneWidget);
+    expect(find.byKey(const Key('session-screen')), findsOneWidget);
 
     navigator.pushNamed(AppRoutes.history);
     await tester.pumpAndSettle();
@@ -176,6 +173,6 @@ void main() {
 
     await tester.pageBack();
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('home-screen')), findsOneWidget);
+    expect(find.byKey(const Key('session-screen')), findsOneWidget);
   });
 }

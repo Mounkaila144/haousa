@@ -500,6 +500,9 @@ void main() {
       find.byKey(const Key('retry-contribution-permission-button')),
       findsOneWidget,
     );
+    await tester.ensureVisible(
+      find.byKey(const Key('retry-contribution-permission-button')),
+    );
     await tester.tap(
       find.byKey(const Key('retry-contribution-permission-button')),
     );

@@ -14,14 +14,29 @@ class BrandFooter extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       key: const Key('brand-footer'),
-      decoration: const BoxDecoration(gradient: brandGradient),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        gradient: brandGradient,
+        border: Border(
+          top: BorderSide(
+            color: BrandColors.blueLight.withValues(alpha: 0.75),
+            width: 2,
+          ),
+        ),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: BrandColors.navy.withValues(alpha: 0.28),
+            blurRadius: 18,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: SafeArea(
         top: false,
         child: Row(
           children: <Widget>[
             Image.asset('assets/brand/ptr_niger.webp', height: 28),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             const Expanded(
               child: Text(
                 'Fait par PTR Niger',
@@ -33,8 +48,12 @@ class BrandFooter extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            const SizedBox(width: 8),
-            const Icon(Icons.call, color: BrandColors.blueLight, size: 16),
+            const SizedBox(width: 6),
+            const Icon(
+              Icons.call_rounded,
+              color: BrandColors.blueLight,
+              size: 16,
+            ),
             const SizedBox(width: 4),
             const Text(
               '+227 70 21 21 12',

@@ -24,7 +24,10 @@ void main() {
   test('la configuration par défaut ne contient aucun secret', () {
     final AppConfig config = AppConfig.fromEnvironment();
 
-    expect(config.apiBaseUrl, startsWith('http://'));
+    expect(
+      config.apiBaseUrl,
+      'https://ia-ptrniger.duckdns.org/hausa/api/v1',
+    );
     expect(config.apiBaseUrl, isNot(contains('token')));
     expect(config.apiBaseUrl, isNot(contains('secret')));
     expect(config.apiBaseUrl, isNot(contains('@')));

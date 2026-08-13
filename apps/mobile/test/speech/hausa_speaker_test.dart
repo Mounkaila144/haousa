@@ -31,6 +31,18 @@ void main() {
       );
     });
 
+    test('une opération et son résultat forment une phrase hausa complète', () {
+      final List<VoiceSegment> utterance = answerUtterance(
+        utteranceFromHausa('ashirin da uku a ƙara goma sha biyar'),
+        utteranceFromHausa('talatin da takwas'),
+      );
+      expect(
+        utteranceToHausaText(utterance),
+        'ashirin da uku a ƙara goma sha biyar '
+        'Sakamakon shi ne talatin da takwas',
+      );
+    });
+
     test('le refus et la répétition sont centralisés en hausa', () {
       expect(
         utteranceToHausaText(refusalUtterance()),

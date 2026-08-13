@@ -11,5 +11,6 @@ abstract final class HausaMessages {
   static const String offline = 'Babu hanyar sadarwa.';
   static const String ttsConfirm = 'Shin wannan ne?';
   static const String ttsCannotAnswer = 'Ba zan iya bayar da amsa ba.';
+  static const String ttsResult = 'Sakamakon shi ne';
   static const String ttsRepeat = 'Da fatan za a sake magana.';
 }

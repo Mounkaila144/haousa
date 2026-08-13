@@ -16,6 +16,14 @@ enum SpeechOutcome { spoken, incomplete, failed }
 
 typedef WavPlayer = Future<void> Function(Uint8List wav);
 
+/// Les bips d'interface ne doivent pas prendre le focus audio Android pendant
+/// que le micro capture encore la voix.
+const AudioContextAndroid recordingCueAndroidAudioContext = AudioContextAndroid(
+  contentType: AndroidContentType.sonification,
+  usageType: AndroidUsageType.assistanceSonification,
+  audioFocus: AndroidAudioFocus.none,
+);
+
 class HausaSpeaker {
   HausaSpeaker({required this.synthesizer, required this.play});
 
@@ -53,7 +61,7 @@ final hausaTtsEngineProvider = Provider<HausaTtsEngine>((ref) {
   return engine;
 });
 
-final wavPlayerProvider = Provider<WavPlayer>((ref) {
+WavPlayer _createWavPlayer(Ref ref, {bool preserveRecordingFocus = false}) {
   final AudioPlayer player = AudioPlayer();
   int utteranceCount = 0;
   File? previous;
@@ -72,12 +80,16 @@ final wavPlayerProvider = Provider<WavPlayer>((ref) {
 
   return (Uint8List wav) async {
     await player.stop();
-    if (Platform.isIOS) {
+    if (Platform.isAndroid && preserveRecordingFocus) {
+      await player.setAudioContext(
+        AudioContext(android: recordingCueAndroidAudioContext),
+      );
+    } else if (Platform.isIOS) {
       await player.setAudioContext(AudioContext(iOS: AudioContextIOS()));
     }
     final Directory directory = await getTemporaryDirectory();
     final File file = File(
-      '${directory.path}/hausa_utterance_${utteranceCount++}.wav',
+      '${directory.path}/hausa_audio_${utteranceCount++}.wav',
     );
     await file.writeAsBytes(wav, flush: true);
     final Future<void> completed = player.onPlayerComplete.first;
@@ -89,6 +101,14 @@ final wavPlayerProvider = Provider<WavPlayer>((ref) {
       previous = file;
     }
   };
+}
+
+final wavPlayerProvider = Provider<WavPlayer>((ref) {
+  return _createWavPlayer(ref);
+});
+
+final recordingCuePlayerProvider = Provider<WavPlayer>((ref) {
+  return _createWavPlayer(ref, preserveRecordingFocus: true);
 });
 
 /// Une instance Riverpod persistante : le modèle n'est jamais rechargé entre

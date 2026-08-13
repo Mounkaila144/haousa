@@ -35,8 +35,10 @@ except ImportError as exc:  # pragma: no cover - outil de préparation
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SOURCE = ROOT / "brand-source"
+SUPPLIED_ASSETS = ROOT / "assets"
 ASSETS = ROOT / "assets" / "brand"
 RES = ROOT / "android" / "app" / "src" / "main" / "res"
+IOS_ICONS = ROOT / "ios" / "Runner" / "Assets.xcassets" / "AppIcon.appiconset"
 
 # Fond de l'icône adaptative — le bleu nuit du logo, pas un noir approché.
 NAVY = (7, 26, 68)
@@ -48,6 +50,24 @@ LAUNCHER_SIZES = {
     "mipmap-xhdpi": 96,
     "mipmap-xxhdpi": 144,
     "mipmap-xxxhdpi": 192,
+}
+
+IOS_LAUNCHER_SIZES = {
+    "Icon-App-20x20@1x.png": 20,
+    "Icon-App-20x20@2x.png": 40,
+    "Icon-App-20x20@3x.png": 60,
+    "Icon-App-29x29@1x.png": 29,
+    "Icon-App-29x29@2x.png": 58,
+    "Icon-App-29x29@3x.png": 87,
+    "Icon-App-40x40@1x.png": 40,
+    "Icon-App-40x40@2x.png": 80,
+    "Icon-App-40x40@3x.png": 120,
+    "Icon-App-60x60@2x.png": 120,
+    "Icon-App-60x60@3x.png": 180,
+    "Icon-App-76x76@1x.png": 76,
+    "Icon-App-76x76@2x.png": 152,
+    "Icon-App-83.5x83.5@2x.png": 167,
+    "Icon-App-1024x1024@1x.png": 1024,
 }
 
 
@@ -89,8 +109,9 @@ def save_webp(image: Image.Image, path: pathlib.Path, quality: int = 88) -> None
 
 
 def main() -> None:
-    print("Logo Calculatrice Hausa (détourage du halo)")
-    logo = cutout(Image.open(SOURCE / "logo.png"), detail=10, erode=7, keep=3000)
+    print("Logo Calculatrice Hausa fourni (alpha conservé)")
+    logo = Image.open(SUPPLIED_ASSETS / "logo.png").convert("RGBA")
+    logo = logo.crop(logo.getbbox())
     save_webp(fit(logo, 720), ASSETS / "logo.webp")
 
     print("Logo PTR-Niger")
@@ -98,11 +119,11 @@ def main() -> None:
     save_webp(fit(ptr.crop(ptr.getbbox()), 240), ASSETS / "ptr_niger.webp")
 
     print("Marque carrée (icône dans l'application)")
-    icon = Image.open(SOURCE / "icone.png").convert("RGB")
+    icon = Image.open(SUPPLIED_ASSETS / "icon.png").convert("RGB")
     # Le carré bleu nuit se détache du blanc : seuil sur la luminance, pas de netteté.
     dark = np.asarray(icon).astype(np.float32).mean(axis=2) < 200
     box = Image.fromarray(np.uint8(dark * 255)).getbbox()
-    square = Image.open(SOURCE / "icone.png").convert("RGBA").crop(box)
+    square = Image.open(SUPPLIED_ASSETS / "icon.png").convert("RGBA").crop(box)
     save_webp(fit(square, 320), ASSETS / "icon.webp")
 
     print("Icône de lanceur Android (héritée + adaptative)")
@@ -141,6 +162,16 @@ def main() -> None:
         )
         foreground.save(RES / folder / "ic_launcher_foreground.png", optimize=True)
     print(f"  {len(LAUNCHER_SIZES)} densités écrites dans android/app/src/main/res")
+
+    print("Icône de lanceur iOS")
+    IOS_ICONS.mkdir(parents=True, exist_ok=True)
+    ios_square = square.convert("RGB")
+    for filename, size in IOS_LAUNCHER_SIZES.items():
+        ios_square.resize((size, size), Image.LANCZOS).save(
+            IOS_ICONS / filename,
+            optimize=True,
+        )
+    print(f"  {len(IOS_LAUNCHER_SIZES)} tailles écrites dans ios/Runner/Assets.xcassets")
 
 
 if __name__ == "__main__":

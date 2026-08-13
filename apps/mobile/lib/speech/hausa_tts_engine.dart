@@ -80,12 +80,26 @@ int resolveSpeakerId(String configJson) {
 }
 
 /// Prétraitement prescrit par le modèle : minuscules, apostrophe ASCII et NFD.
+/// Translittération imposée par le modèle : `ƙ` n'existe pas dans sa table.
+///
+/// Le modèle est entraîné en mode « caractères » sur la table IPA d'espeak, où
+/// `ɗ` et `ɓ` figurent — ce sont des implosives IPA — mais pas `ƙ`. Le corpus
+/// d'entraînement a donc été écrit avec `q` (voir
+/// `entrainement/tts_training/prepare_tts_corpus.py`).
+///
+/// La même substitution **doit** être faite ici : le serveur envoie `a ƙara`,
+/// et sans elle le caractère serait refusé au chargement — ou pire, ignoré.
+const Map<String, String> kHausaTtsTransliteration = <String, String>{'ƙ': 'q'};
+
 String normalizeHausaTtsText(String text) {
-  final String compact = text
+  String compact = text
       .trim()
       .toLowerCase()
       .replaceAll(RegExp('[‘’ʼ`´]'), "'")
       .replaceAll(RegExp(r'\s+'), ' ');
+  kHausaTtsTransliteration.forEach((String source, String cible) {
+    compact = compact.replaceAll(source, cible);
+  });
   return unorm.nfd(compact);
 }
 

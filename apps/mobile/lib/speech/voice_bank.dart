@@ -7,6 +7,7 @@ enum VoiceSegmentKind { word, prompt }
 
 const String kPromptConfirm = 'confirm';
 const String kPromptCannotAnswer = 'cannot_answer';
+const String kPromptResult = 'result';
 const String kPromptRepeat = 'repeat';
 
 class VoiceSegment {
@@ -47,6 +48,17 @@ List<VoiceSegment> confirmationUtterance(List<VoiceSegment> inner) {
   return <VoiceSegment>[const VoiceSegment.prompt(kPromptConfirm), ...inner];
 }
 
+List<VoiceSegment> answerUtterance(
+  List<VoiceSegment> operation,
+  List<VoiceSegment> result,
+) {
+  return <VoiceSegment>[
+    ...operation,
+    const VoiceSegment.prompt(kPromptResult),
+    ...result,
+  ];
+}
+
 List<VoiceSegment> refusalUtterance() {
   return const <VoiceSegment>[VoiceSegment.prompt(kPromptCannotAnswer)];
 }
@@ -59,6 +71,7 @@ String utteranceToHausaText(List<VoiceSegment> utterance) {
   const Map<String, String> prompts = <String, String>{
     kPromptConfirm: HausaMessages.ttsConfirm,
     kPromptCannotAnswer: HausaMessages.ttsCannotAnswer,
+    kPromptResult: HausaMessages.ttsResult,
     kPromptRepeat: HausaMessages.ttsRepeat,
   };
   final List<String> parts = <String>[];

@@ -132,10 +132,13 @@ class TestRecognizePipeline:
         body = response.json()
         assert body["recognized_number"] == 1_000
         assert body["hausa_text"] == "jikka"
-        assert body["spoken_text"] == "jikk ka"
-        # La forme écrite reste la seule forme canonique : elle n'est pas
-        # remplacée, seulement doublée par la forme à prononcer.
-        assert body["spoken_text"] != body["hausa_text"]
+        # Le CHAMP doit exister : c'est lui qui manquait, et la forme parlée
+        # calculée par le pipeline n'avait alors aucun moyen d'atteindre le
+        # mobile. Sa valeur est vide aujourd'hui parce que le lexique ne
+        # déclare plus aucune forme parlée : la voix est entraînée sur la forme
+        # écrite, `jikka` part donc tel quel à la synthèse.
+        assert "spoken_text" in body
+        assert body["spoken_text"] == ""
 
     def test_non_numeric_text_never_invents_number(self, mock_recognizer: MockRecognizer) -> None:
         mock_recognizer.set_text("salaam", acoustic_score=0.8)
