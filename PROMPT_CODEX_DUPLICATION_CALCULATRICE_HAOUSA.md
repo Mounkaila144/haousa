@@ -354,7 +354,7 @@ Avec un reste :
 Utilise :
 
 ```text
-1 000 = dubu
+1 000 = dubu cest faux tu dois le remplacer par jika 1 000 = jika
 1 000 = dubu ɗaya
 2 000 = dubu biyu
 3 000 = dubu uku
