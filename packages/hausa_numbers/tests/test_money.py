@@ -250,8 +250,50 @@ def test_amount_off_the_five_franc_unit_has_no_spoken_form() -> None:
 
 
 def test_amount_beyond_the_range_is_out_of_range() -> None:
+    from hausa_numbers import MAX_MONEY_CFA
+
     with pytest.raises(OutOfRangeError):
-        format_money(10_000_000)
+        format_money(MAX_MONEY_CFA + UNIT_CFA)
+
+
+@pytest.mark.parametrize(
+    ("amount", "forme"),
+    [
+        (1_000_000, "miliyan"),
+        (2_000_000, "miliyan biyu"),
+        (10_000_000, "miliyan goma"),
+        (50_000_000, "miliyan hamsin"),
+        (1_001_000, "miliyan da jikka"),
+        (1_500_000, "miliyan da jikka ɗari biyar"),
+    ],
+)
+def test_millions_have_their_own_scale(amount: int, forme: str) -> None:
+    """Au-delà de 999 995 F, le millier ne suffit plus.
+
+    Son multiplicateur doit rester sous 1 000, sans quoi la forme produite
+    réemploierait `jikka` dans son propre multiplicateur. `miliyan` prend le
+    relais, sur le même schéma d'un cran supérieur.
+    """
+    assert format_money(amount) == forme
+    assert parse_money(forme) == amount
+
+
+def test_a_calculation_can_now_cross_the_million() -> None:
+    expression = parse_expression("jika dari sau goma")
+    assert expression is not None
+    assert evaluate(expression).value == 1_000_000
+
+
+def test_no_scale_word_is_ever_nested_in_its_own_multiplier() -> None:
+    """Régression : `format_money` produisait `jikka jikka ɗaya…` au-delà de la
+    borne, une forme absurde que `parse_money` refusait ensuite."""
+    from hausa_numbers import MAX_MONEY_CFA
+
+    for amount in (999_995, 1_000_000, MAX_MONEY_CFA):
+        mots = format_money(amount).split()
+        assert mots.count("jikka") <= 1
+        assert mots.count("miliyan") <= 1
+        assert parse_money(format_money(amount)) == amount
 
 
 def test_negative_result_is_refused() -> None:

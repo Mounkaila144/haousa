@@ -39,9 +39,18 @@ class HausaSpeaker {
   List<VoiceSegment> preferred(String canonicalText, String spokenText) =>
       preferredUtterance(canonicalText, spokenText);
 
-  Future<Uint8List> _loadRecording(String assetPath) async {
-    final ByteData data = await (bundle ?? rootBundle).load(assetPath);
-    return data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+  /// Charge un enregistrement, ou `null` s'il n'est pas embarqué.
+  ///
+  /// Renvoyer `null` plutôt que lever : l'appelant saute alors ce tronçon et
+  /// prononce les autres. Une exception ferait perdre tout l'énoncé.
+  Future<Uint8List?> _tryLoadRecording(String assetPath) async {
+    try {
+      final ByteData data = await (bundle ?? rootBundle).load(assetPath);
+      return data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+    } catch (error) {
+      if (kDebugMode) debugPrint('Consigne absente : $assetPath ($error)');
+      return null;
+    }
   }
 
   /// Dit l'énoncé, chaque tronçon par la voie qui lui revient.
@@ -53,14 +62,22 @@ class HausaSpeaker {
   Future<SpeechOutcome> speak(List<VoiceSegment> utterance) async {
     if (utterance.isEmpty) return SpeechOutcome.incomplete;
     try {
+      bool complet = true;
       for (final VoiceChunk chunk in splitUtterance(utterance)) {
-        final Uint8List wav = chunk.isRecording
-            ? await _loadRecording(chunk.assetPath!)
+        final Uint8List? wav = chunk.isRecording
+            ? await _tryLoadRecording(chunk.assetPath!)
             : await synthesizer.synthesizeWav(chunk.text!);
+        if (wav == null) {
+          // Consigne manquante : on la saute et on dit le reste. Un connecteur
+          // absent ne doit pas emporter le RÉSULTAT, qui est l'essentiel — les
+          // nombres suffisent à comprendre, le silence non.
+          complet = false;
+          continue;
+        }
         await play(wav);
       }
-      lastError = null;
-      return SpeechOutcome.spoken;
+      lastError = complet ? null : 'Une consigne enregistrée est absente.';
+      return complet ? SpeechOutcome.spoken : SpeechOutcome.incomplete;
     } on HausaTtsException catch (error) {
       lastError = error.message;
       if (kDebugMode) debugPrint(error.toString());

@@ -54,13 +54,17 @@ UNIT_CFA: Final = 5
 #: jamais deux constantes concurrentes, sans quoi les synonymes divergeraient.
 THOUSAND_CFA: Final = 1_000
 
-#: Plus grand montant exprimable : 999 995 F.
+#: Le million monétaire. Même rôle que ``THOUSAND_CFA`` un cran plus haut :
+#: sans lui, aucun montant au-delà de 999 995 F ne pourrait être dit, le
+#: multiplicateur du millier devant rester sous 1 000.
+MILLION_CFA: Final = 1_000_000
+
+#: Plus grand montant exprimable : 999 999 995 F.
 #:
-#: Deux bornes se combinent. Le multiplicateur du millier doit rester un
-#: scalaire inférieur à 1 000, sans quoi la forme produite réemploierait le mot
-#: du millier à l'intérieur de son propre multiplicateur (`jikka jikka ɗaya…`).
-#: Et le reste doit rester sous 1 000 F, donc au plus 199 × 5 F.
-MAX_MONEY_CFA: Final = 999 * THOUSAND_CFA + (THOUSAND_CFA - UNIT_CFA)
+#: La borne vient du multiplicateur, qui doit rester un scalaire inférieur à
+#: 1 000 à chaque étage — sans quoi la forme produite réemploierait le mot de
+#: l'étage à l'intérieur de son propre multiplicateur (`miliyan miliyan ɗaya…`).
+MAX_MONEY_CFA: Final = 999 * MILLION_CFA + 999 * THOUSAND_CFA + (THOUSAND_CFA - UNIT_CFA)
 
 MIN_MONEY_CFA: Final = 0
 
@@ -71,6 +75,11 @@ ThousandNaming = Literal["jika", "dubu"]
 DEFAULT_THOUSAND_NAMING: Final[ThousandNaming] = "jika"
 
 THOUSAND_NAMINGS: Final[tuple[ThousandNaming, ...]] = ("jika", "dubu")
+
+
+def _million_token() -> str:
+    """Forme normalisée du million, telle que le normaliseur la produit."""
+    return load_lexicon().scales["million"].canonical or "miliyan"
 
 
 def _thousand_token() -> str:
@@ -115,20 +124,21 @@ def _money_below_thousand(tokens: list[str]) -> int | None:
     return amount if amount < THOUSAND_CFA else None
 
 
-def _parse_money_tokens(tokens: list[str]) -> int | None:
-    if not tokens:
-        return None
+def _parse_echelle(
+    tokens: list[str],
+    valeur: int,
+    reste_max: int,
+    parse_reste,
+) -> int | None:
+    """Analyse ``<mot d'échelle> [multiplicateur] [da <reste>]``.
 
-    if tokens[0] != _thousand_token():
-        # Aucun millier : le montant est le numéral rééchelonné. La borne des
-        # 1 000 F n'est pas imposée ici — `ɗari biyu` (200 × 5) vaut bien
-        # 1 000 F et doit être accepté comme synonyme de `jikka`.
-        scalar = parse_scalar(" ".join(tokens))
-        return None if scalar is None else scalar * UNIT_CFA
-
+    Le même schéma sert au million et au millier ; seuls changent la valeur de
+    l'unité et la façon de lire ce qui suit ``da``. Les écrire deux fois ferait
+    diverger les deux étages à la première correction.
+    """
     rest = tokens[1:]
     if not rest:
-        return THOUSAND_CFA
+        return valeur
 
     # Priorité au multiplicateur complet, comme dans le moteur numérique : en
     # hausa le même `da` compose aussi le multiplicateur (`jikka ɗari uku da
@@ -136,7 +146,7 @@ def _parse_money_tokens(tokens: list[str]) -> int | None:
     # autre montant.
     multiplier = parse_scalar(" ".join(rest))
     if multiplier is not None and 0 < multiplier < THOUSAND_CFA:
-        return THOUSAND_CFA * multiplier
+        return valeur * multiplier
 
     # Sinon, `da` sépare le multiplicateur du reste : `jikka biyar da ɗari`.
     solutions: set[int] = set()
@@ -147,15 +157,36 @@ def _parse_money_tokens(tokens: list[str]) -> int | None:
         if not right:
             continue
         multiplier = 1 if not left else parse_scalar(" ".join(left))
-        remainder = _money_below_thousand(right)
+        remainder = parse_reste(right)
         if multiplier is None or remainder is None:
             continue
-        if 0 < multiplier < THOUSAND_CFA and 0 < remainder < THOUSAND_CFA:
-            solutions.add(THOUSAND_CFA * multiplier + remainder)
+        if 0 < multiplier < THOUSAND_CFA and 0 < remainder < reste_max:
+            solutions.add(valeur * multiplier + remainder)
 
     # Une seule lecture grammaticale, sinon on refuse : une calculatrice
     # d'argent ne devine pas un montant (cf. §30).
     return solutions.pop() if len(solutions) == 1 else None
+
+
+def _money_below_million(tokens: list[str]) -> int | None:
+    """Montant sous le million : millier éventuel, sinon numéral rééchelonné."""
+    if not tokens:
+        return None
+    if tokens[0] == _thousand_token():
+        return _parse_echelle(tokens, THOUSAND_CFA, THOUSAND_CFA, _money_below_thousand)
+    # Aucun millier : le montant est le numéral rééchelonné. La borne des
+    # 1 000 F n'est pas imposée ici — `ɗari biyu` (200 × 5) vaut bien 1 000 F
+    # et doit être accepté comme synonyme de `jikka`.
+    scalar = parse_scalar(" ".join(tokens))
+    return None if scalar is None else scalar * UNIT_CFA
+
+
+def _parse_money_tokens(tokens: list[str]) -> int | None:
+    if not tokens:
+        return None
+    if tokens[0] == _million_token():
+        return _parse_echelle(tokens, MILLION_CFA, MILLION_CFA, _money_below_million)
+    return _money_below_million(tokens)
 
 
 def parse_money(text: str) -> int | None:
@@ -202,21 +233,34 @@ def format_money(
             code="UNRESOLVED_FORM",
         )
 
-    word = thousand_word(naming)
-    thousands, remainder = divmod(amount, THOUSAND_CFA)
+    millions, sous_million = divmod(amount, MILLION_CFA)
+    if millions:
+        tete = _echelle_dite(_million_token(), millions)
+        if sous_million == 0:
+            return tete
+        return f"{tete} da {_format_sous_million(sous_million, naming)}"
+    return _format_sous_million(amount, naming)
 
+
+def _echelle_dite(mot: str, multiplicateur: int) -> str:
+    """`jikka` seul pour un, `jikka biyar` au-delà — le « un » ne se dit pas."""
+    return mot if multiplicateur == 1 else f"{mot} {generate(multiplicateur)}"
+
+
+def _format_sous_million(amount: int, naming: ThousandNaming) -> str:
+    thousands, remainder = divmod(amount, THOUSAND_CFA)
     if thousands == 0:
         return generate(amount // UNIT_CFA)
-
-    head = word if thousands == 1 else f"{word} {generate(thousands)}"
+    tete = _echelle_dite(thousand_word(naming), thousands)
     if remainder == 0:
-        return head
-    return f"{head} da {generate(remainder // UNIT_CFA)}"
+        return tete
+    return f"{tete} da {generate(remainder // UNIT_CFA)}"
 
 
 __all__ = [
     "DEFAULT_THOUSAND_NAMING",
     "MAX_MONEY_CFA",
+    "MILLION_CFA",
     "MIN_MONEY_CFA",
     "THOUSAND_CFA",
     "THOUSAND_NAMINGS",

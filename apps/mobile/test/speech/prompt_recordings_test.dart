@@ -25,6 +25,13 @@ class _RecordingSynthesizer implements HausaTtsSynthesizer {
   Future<void> dispose() async {}
 }
 
+/// Ne fournit aucun enregistrement : simule un WAV non encore embarqué.
+class _BundleVide extends CachingAssetBundle {
+  @override
+  Future<ByteData> load(String key) async =>
+      throw StateError('asset absent : $key');
+}
+
 class _FakeBundle extends CachingAssetBundle {
   final List<String> charges = <String>[];
 
@@ -113,6 +120,33 @@ void main() {
         );
       }
     }
+  });
+
+  test('une consigne absente ne fait pas perdre le résultat', () async {
+    // Régression : l'écran Session disait l'opération puis se taisait. Le
+    // connecteur « Sakamakon shi ne » n'étant pas encore enregistré, le
+    // chargement échouait et emportait la RÉPONSE avec lui.
+    final HausaSpeaker fragile = HausaSpeaker(
+      synthesizer: synthesizer,
+      bundle: _BundleVide(),
+      play: (Uint8List wav) async => joues.add(wav),
+    );
+
+    final SpeechOutcome outcome = await fragile.speak(<VoiceSegment>[
+      ...utteranceFromHausa('ashirin da uku'),
+      const VoiceSegment.prompt(kPromptResult),
+      ...utteranceFromHausa('talatin da takwas'),
+    ]);
+
+    expect(
+      synthesizer.demandes,
+      <String>['ashirin da uku', 'talatin da takwas'],
+      reason: 'l’opération ET le résultat doivent être dits',
+    );
+    expect(joues, hasLength(2));
+    // Le manque est signalé, sans faire taire l'application.
+    expect(outcome, SpeechOutcome.incomplete);
+    expect(fragile.lastError, isNotNull);
   });
 
   test('chaque consigne connue a son enregistrement', () {

@@ -49,6 +49,7 @@ from .loader import Lexicon, Operator, load_lexicon
 from .money import (
     DEFAULT_THOUSAND_NAMING,
     MAX_MONEY_CFA,
+    MILLION_CFA,
     MIN_MONEY_CFA,
     THOUSAND_CFA,
     THOUSAND_NAMINGS,
@@ -78,6 +79,7 @@ __all__ = [
     "load_lexicon",
     "DEFAULT_THOUSAND_NAMING",
     "MAX_MONEY_CFA",
+    "MILLION_CFA",
     "MIN_MONEY_CFA",
     "THOUSAND_CFA",
     "THOUSAND_NAMINGS",
